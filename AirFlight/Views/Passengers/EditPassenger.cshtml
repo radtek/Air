@@ -1,0 +1,628 @@
+﻿@model AirFlight.Models.Passenger
+
+    @{
+        ViewBag.Title = "Редактирование пассажира";
+    }
+<div id="editpass">
+    <h3 style="text-align:center">Редактирование или удаление пассажира</h3>
+    <div class="form-group">
+        <h4 id="saveok" style="visibility:hidden; text-align:center;color:deepskyblue">Пассажир успешно изменён</h4>
+    </div>
+
+    <form class="form-horizontal">
+        @Html.Hidden("id")
+        <div class="form-group">
+            @Html.Label("Фамилия", htmlAttributes: new { @class = "control-label col-md-2"})
+            <div class="col-md-3">
+                @Html.EditorFor(model => model.Surname, new { htmlAttributes = new { @class = "form-control", @placeholder = "Введите Фамилию", @TabIndex=1 } })
+            </div>
+            @Html.Label("Рабочий email", htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-3">
+                @Html.EditorFor(model => model.Email, new { htmlAttributes = new { @class = "form-control", @placeholder = "Email@alrosa.ru", @TabIndex =10 } })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.Label("Имя", htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-3">
+                @Html.EditorFor(model => model.Name, new { htmlAttributes = new { @class = "form-control", @placeholder = "Введите Имя", @TabIndex =2 } })
+            </div>
+            @Html.Label("Уведомления на рабочий email", htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-3">
+                @Html.DropDownList("SendEmail", new List<SelectListItem>() {
+           new SelectListItem { Text = "Нет", Value = "False", Selected = true },
+           new SelectListItem { Text = "Да", Value = "True" } }, new { @class = "form-control", @TabIndex =11 })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.Label("Отчество", htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-3">
+                @Html.EditorFor(model => model.Middlename, new { htmlAttributes = new { @class = "form-control", @placeholder = "Введите Отчество", @TabIndex =3 } })
+            </div>
+            @Html.Label("Личный email", htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-3">
+                @Html.EditorFor(model => model.Email2, new { htmlAttributes = new { @class = "form-control", @placeholder = "my@email.ru", @TabIndex =12 } })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.Label("Дата рождения", htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-3">
+                @Html.EditorFor(model => model.Date_Birth, new { htmlAttributes = new { @class = "form-control", @placeholder = "ДД.ММ.ГГГГ", @TabIndex = 4 } })
+            </div>
+            @Html.Label("Уведомления на личный email", htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-3">
+                @Html.DropDownList("SendEmail2", new List<SelectListItem>() {
+           new SelectListItem { Text = "Нет", Value = "False",  Selected = true},
+           new SelectListItem { Text = "Да", Value = "True" } }, new { @class = "form-control", @TabIndex =13 })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.Label("Пасспорт", htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-3">
+                @Html.EditorFor(model => model.Passport, new { htmlAttributes = new { @class = "form-control", @placeholder = "Серия номер", @TabIndex =5 } })
+            </div>
+            @Html.Label("Участок", htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-3">
+                @Html.EditorFor(model => model.Department, new { htmlAttributes = new { @class = "form-control", @placeholder = "Например КИПиА, УРиО", @TabIndex =14 } })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.Label("Табельный номер", htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-3">
+                @Html.EditorFor(model => model.EmployeeNum, new { htmlAttributes = new { @class = "form-control", @placeholder = "Табельный номер (от 3 до 5 значений)", @TabIndex =6 } })
+            </div>
+            @Html.Label("Цех*", htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-3">
+                @Html.EditorFor(model => model.Site, new { htmlAttributes = new { @class = "form-control", @placeholder = "Например ОФ №16, ЦРГТТ", @TabIndex =15 } })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.Label("Номер телефона", htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-3">
+                @Html.EditorFor(model => model.PhoneNum, new { htmlAttributes = new { @class = "form-control", @placeholder = "+7 XXX-XXX-XX-XX", @TabIndex =7 } })
+            </div>
+            @Html.Label("Подразделение", htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-3">
+                @Html.EditorFor(model => model.Company, new { htmlAttributes = new { @class = "form-control", @placeholder = "Например НГОК, АЭМ", @TabIndex =16 } })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.Label("Уведомление по SMS", htmlAttributes: new { @class = "control-label col-md-2"})
+            <div class="col-md-3">
+                @Html.DropDownList("SendSms", new List<SelectListItem>() {
+           new SelectListItem { Text = "Нет", Value = "False", Selected = true },
+           new SelectListItem { Text = "Да", Value = "True" } }, new { @class = "form-control", @TabIndex =8 })
+            </div>
+            @Html.Label("Должность", htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-3">
+                @Html.EditorFor(model => model.Post, new { htmlAttributes = new { @class = "form-control", @placeholder = "Например водитель", @TabIndex =17 } })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.Label("Место проживания", htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-3">
+                @Html.DropDownList("Residence", ViewBag.Residenses as SelectList, htmlAttributes: new { @class = "form-control", @TabIndex =9 })
+            </div>
+            @Html.Label("Номер смены", htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-3">
+                @Html.DropDownList("ShiftNum", new List<SelectListItem>() {
+           new SelectListItem { Text = "Не указана", Value = "", Selected = true },
+           new SelectListItem { Text = "1", Value = "1" },
+           new SelectListItem { Text = "2", Value = "2" },
+           new SelectListItem { Text = "3", Value = "3" },
+           new SelectListItem { Text = "4", Value = "4" } }, new { @class = "form-control", @TabIndex = 18 })
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-md-1 col-md-offset-3">
+                <input type="button" id="SaveEditPass" class="btn btn-primary btn-sm btn-block btn-info" value="Сохранить" tabindex="19" />                
+            </div>
+            <div class="col-md-1 col-md-offset-1">
+                <input type="button" id="clear" class="btn btn-primary btn-sm btn-block btn-warning" value="Очистить" tabindex="20" />
+            </div>
+            <div class="col-md-1 col-md-offset-1">
+                <input type="button" id="delete" class="btn btn-primary btn-sm btn-block btn-danger" value="Удалить" tabindex="21"/>
+            </div>
+            </div>
+    </form>
+</div>
+
+@section scripts
+    {
+    <script type="text/javascript">
+           $(window).ready(function () {
+               //запрещаем браузеру кэшировать данные AJAX
+               $.ajaxSetup({ cache: false });
+               // $("#SendSms").prop("disabled", true);
+               if ($("#PhoneNum").val().length < 5)
+               { $("#SendSms").attr("readOnly", true); }
+               if($("#Email").val() / length < 11)
+              { $("#SendEmail").attr("readOnly", true); }
+              if ($("#Email2").val() / length < 10)
+              { $("#SendEmail2").attr("readOnly", true); }
+               //Для того что бы активировать DropDown menu обновляем его
+              $(".dropdown-toggle").dropdown();
+               //задаём в маске для телефона первая цифра 9
+              $.mask.definitions['d'] = '9';
+           });
+
+           //Всплывающая подсказка для полей
+           @*плагин tooltip  http://www.jqueryscript.net/demo/Robust-Extensible-Tooltip-Plugin-For-jQuery-myTooltip/ можно также испольовать css - смотри ссылку *@
+        $(function () {
+
+               $("#Department").myTooltip({
+                   offset: 15,
+                   content: 'Введите первые буквы названия участка. При отсутсвии в выпадающем списке, он будет добавлен в общий список автоматически',
+                   direction: 'right',
+                   animateOffsetPx: 50, //animateDuration
+                   action: 'hover', //action:'hover' при наведении, action:'click' при клике
+                   //hideTime: 3000, //время отображения подсказки
+                   customClass: 'my-tooltip', //my-tooltip - это класс с закруглёнными краями
+                   disposable: true
+               });
+
+
+               $("#Name").myTooltip({
+                   offset: 15,
+                   //theme: 'warning',
+                   content: 'Введите первые буквы имени',
+                   direction: 'right',
+                   animateOffsetPx: 100, //animateDuration
+                   action: 'hover', //action:'hover', action:'click'
+                   customClass: 'my-tooltip', //my-tooltip - это класс с закруглёнными краями
+                   disposable: true //показать только 1 раз (до обновления страницы)
+               });
+
+                     $("#Site").myTooltip({
+                           offset: 15,
+                           content: 'Введите первые буквы названия цеха. При отсутсвии в выпадающем списке, он будет добавлен в общий список автоматически',
+                           direction: 'right',
+                           animateOffsetPx: 50, //animateDuration
+                           action: 'hover', //action:'hover', action:'click'
+                           customClass: 'my-tooltip', //my-tooltip - это класс с закруглёнными краями
+                           disposable: true
+                       });
+
+                   $("#Company").myTooltip({
+                       offset: 15,
+                       //theme: 'warning',
+                       content: 'Введите первые буквы подразделения. При отсутсвии в выпадающем списке, оно будет добавлено в общий список после сохранения',
+                       direction: 'right',
+                       animateOffsetPx: 100, //animateDuration
+                       action: 'hover', //action:'hover', action:'click'
+                       customClass: 'my-tooltip', //my-tooltip - это класс с закруглёнными краями
+                       disposable: true //показать только 1 раз (до обновления страницы)
+                   });
+
+          //Всплывающая подсказка для должности
+                  $("#Post").myTooltip({
+                   offset: 15,
+                   //theme: 'warning',
+                   content: 'Введите первые буквы должности. При отсутсвии в выпадающем списке, она будет добавлена в общий список после сохранения',
+                   direction: 'right',
+                   animateOffsetPx: 100, //animateDuration
+                   action: 'hover', //action:'hover', action:'click'
+                   customClass: 'my-tooltip', //my-tooltip - это класс с закруглёнными краями
+                   disposable: true
+               });
+
+        //Подсказка для кнопки очистить
+               $("#clear").myTooltip({
+               offset: 15,
+               theme: 'warning',
+               content: 'Очистка полей формы',
+               direction: 'right',
+               animateOffsetPx: 50, //animateDuration
+               action: 'hover', //action:'hover' при наведении, action:'click' при клике
+               //hideTime: 3000, //время отображения подсказки
+               disposable: true
+           });
+
+        //Подсказки для заблокированных полей SendSms SendEmail2 SendEmail
+                  $("#SendSms").myTooltip({
+                   offset: 15,
+                   content: 'Поле номер телефона должно быть заполнено!',
+                   direction: 'right',
+                   animateOffsetPx: 100, //animateDuration
+                   action: 'hover', //action:'hover', action:'click'
+                   customClass: 'my-tooltip', //my-tooltip - это класс с закруглёнными краями
+                   disposable: true
+               });
+       
+                  //Если поля номер телефона или почта пустые, то не даём установить флаг рассылки в состояние: да
+                  $("#SendSms").change(function () {
+                      if ($("#PhoneNum").val().indexOf(9) === -1) {
+                          $("#SendSms").attr("readOnly", true).val("False");
+                      }
+                      else {
+                          $("#SendSms").attr("readOnly", false);
+                      }
+                  });
+
+                  $("#PhoneNum").focusout(function () {
+                      if ($("#PhoneNum").val().indexOf(9) === -1) {
+                          $("#SendSms").attr("readOnly", true).val("False");
+                      }
+                      else {
+                          $("#SendSms").attr("readOnly", false).val("True");
+                      }
+                  });
+
+                  $("#SendEmail").change(function () {
+                      if ($("#Email").val().length < 11) {
+                          $("#SendEmail").val("False").attr("readOnly", true);
+                      }
+                      else {
+                          $("#SendEmail").attr("readOnly", false);
+                      }
+                  });
+
+                  $("#Email").blur(function () {
+                      if ($("#Email").val().length < 11) {
+                          $("#SendEmail").val("False").attr("readOnly", true);
+                      }
+                      else {
+                          $("#SendEmail").attr("readOnly", false).val("True");
+                      }
+                  });
+
+                  $("#SendEmail2").change(function () {
+                      if ($("#Email2").val().length < 11) {
+                          $("#SendEmail2").val("False").attr("readOnly", true);
+                      }
+                      else {
+                          $("#SendEmail2").attr("readOnly", false);
+                      }
+                  });
+
+                  $("#Email2").blur(function () {
+                      if ($("#Email2").val().length < 11) {
+                          $("#SendEmail2").val("False").attr("readOnly", true);
+                      }
+                      else {
+                          $("#SendEmail2").attr("readOnly", false).val("True");
+                      }
+                  });
+
+               $("#SendEmail").myTooltip({
+                   offset: 15,
+                   content: 'Поле рабочий email должно быть заполнено!',
+                   direction: 'right',
+                   animateOffsetPx: 100, //animateDuration
+                   action: 'click', //action:'hover', action:'click'
+                   customClass: 'my-tooltip', //my-tooltip - это класс с закруглёнными краями
+                   disposable: true
+               });
+
+               $("#SendEmail2").myTooltip({
+                   offset: 15,
+                   content: 'Поле личный email должно быть заполнено!',
+                   direction: 'right',
+                   animateOffsetPx: 100, //animateDuration
+                   action: 'click', //action:'hover', action:'click'
+                   customClass: 'my-tooltip', //my-tooltip - это класс с закруглёнными краями
+                   disposable: true
+               });
+            //Информация по inputmask https://github.com/RobinHerbots/Inputmask
+        //Разрешаем ввод только символов в поле фамилия
+           $("#Surname").inputmask("a{1,25}", { showMaskOnHover: false, placeholder: "" });
+           $("#Name").inputmask("a{1,20}", { showMaskOnHover: false, placeholder: "" });
+           $("#Middlename").inputmask("a{1,20}", { showMaskOnHover: false, placeholder: "" });
+
+           //Задаём маску для дня рождения
+            $("#Date_Birth").mask("99.99.9999")
+
+           //Задаём маску для табельного номера
+            //$("#EmployeeNum").mask("9999", { placeholder: "X" })
+            $("#EmployeeNum").inputmask("9{1,5}", { showMaskOnHover: false, placeholder: "X", "clearIncomplete": true });
+
+           //Задаём маску для паспортных данных
+            $("#Passport").inputmask("9999 999999", { showMaskOnHover: false, placeholder: "X", "clearIncomplete": true })
+
+            //Задаём маску для номера телефона           
+            $("#PhoneNum").mask("+7 d99-999-99-99", { placeholder: "X" })
+           //Для отображения цифры 9 можно использовать inputmask("+7 //999-999-99-99")
+
+           //Задаём маску для рабочего Email разрешаем имя пользователя не более 30 символов и с обязательным окончанием alrosa.ru
+            $("#Email").inputmask("*{1,30}@@\\alros\\a.ru", { showMaskOnHover: false, placeholder: ""  }); //showMaskOnHover: false - не показывать маску при наведении мышкой http://js-tutorial.com/jqueryinputmask-create-an-input-mask-588
+
+           //Автозаполнение по фамилии
+                $("#Surname").autocomplete({
+                    source: '@Url.Action("AutocompleteSurname")',
+                    select: function (event, ui) {
+                        $("#id").val(ui.item.id);
+                        $("#Name").val(ui.item.name);
+                        $("#Middlename").val(ui.item.middlename);
+                        //Так как дата в формате dd.mm.yyyy hh:mm:ss не передаётся в автокомплейте, то передаём в формате yyyy-dd-mm. Далее преобразуем её к виду dd.mm.yyyy функцией split("-").reverse().join(".")
+                        $("#Date_Birth").val(ui.item.bd.split("-").reverse().join("."));
+                        $("#Passport").val(ui.item.passport).mask("9999 999999");
+                        $("#EmployeeNum").val(ui.item.emplnum);
+                        $("#PhoneNum").val(ui.item.phonenum).mask("+7 d99-999-99-99");
+                        $("#SendSms").val(ui.item.sendsms);
+                        $("#Residence").val(ui.item.residence);
+                        $("#Email").val(ui.item.email);
+                        $("#SendEmail").val(ui.item.sendemail);
+                        $("#Email2").val(ui.item.email2);
+                        $("#SendEmail2").val(ui.item.sendemail2);
+                        $("#Department").val(ui.item.departament);
+                        $("#Site").val(ui.item.site);
+                        $("#Company").val(ui.item.company);
+                        $("#Post").val(ui.item.post);
+                        $("#ShiftNum").val(ui.item.shiftnum);
+                    },
+                    //Для изменения позиции отображения My:"left - где будет начало выпадающего списка top - куда открываем (вниз buttom  - вверх)" http://www.plus2net.com/jquery/msg-demo/autocomplete-position.php
+                    //position: {
+                    //    my: "left top", at: "right bottom"
+
+                    //},
+           });
+
+                //Автозаполнение по паспорту
+                $("#Passport").autocomplete({
+                        source: '@Url.Action("AutocompletePassport")',
+                        select: function (event, ui) {
+                            $("#id").val(ui.item.id);
+                            $("#Surname").val(ui.item.surname);
+                            $("#Name").val(ui.item.name);
+                            $("#Middlename").val(ui.item.middlename);
+                            //Так как дата в формате dd.mm.yyyy hh:mm:ss не передаётся в автокомплейте, то передаём в формате yyyy-dd-mm. Далее преобразуем её к виду dd.mm.yyyy функцией split("-").reverse().join(".")
+                            $("#Date_Birth").val(ui.item.bd.split("-").reverse().join("."));
+                            $("#EmployeeNum").val(ui.item.emplnum);
+
+                            $("#PhoneNum").val(ui.item.phonenum).mask("+7 d99-999-99-99");
+                            $("#SendSms").val(ui.item.sendsms);
+                            $("#Residence").val(ui.item.residence);
+                            $("#Email").val(ui.item.email);
+                            $("#SendEmail").val(ui.item.sendemail);
+                            $("#Email2").val(ui.item.email2);
+                            $("#SendEmail2").val(ui.item.sendemail2);
+                            $("#Department").val(ui.item.departament);
+                            $("#Site").val(ui.item.site);
+                            $("#Company").val(ui.item.company);
+                            $("#Post").val(ui.item.post);
+                            $("#ShiftNum").val(ui.item.shiftnum);
+                        },
+                });
+
+              //Автозаполнение по табельному номеру
+                $("#EmployeeNum").autocomplete({
+                    source: '@Url.Action("AutocompleteEmployeeNum")',
+                    select: function (event, ui) {
+                        $("#id").val(ui.item.id);
+                        $("#Surname").val(ui.item.surname);
+                        $("#Name").val(ui.item.name);
+                        $("#Middlename").val(ui.item.middlename);
+                        //Так как дата в формате dd.mm.yyyy hh:mm:ss не передаётся в автокомплейте, то передаём в формате yyyy-dd-mm. Далее преобразуем её к виду dd.mm.yyyy функцией split("-").reverse().join(".")
+                        $("#Date_Birth").val(ui.item.bd.split("-").reverse().join("."));
+                        $("#Passport").val(ui.item.passport).mask("9999 999999");
+                        $("#PhoneNum").val(ui.item.phonenum).mask("+7 d99-999-99-99");
+                        $("#SendSms").val(ui.item.sendsms);
+                        $("#Residence").val(ui.item.residence);
+                        $("#Email").val(ui.item.email);
+                        $("#SendEmail").val(ui.item.sendemail);
+                        $("#Email2").val(ui.item.email2);
+                        $("#SendEmail2").val(ui.item.sendemail2);
+                        $("#Department").val(ui.item.departament);
+                        $("#Site").val(ui.item.site);
+                        $("#Company").val(ui.item.company);
+                        $("#Post").val(ui.item.post);
+                        $("#ShiftNum").val(ui.item.shiftnum);
+                    },
+             });
+
+                $("#PhoneNum").keyup(function () {
+                    //Удаляем лишние символы из строки так как ввод идёт по маск и если длина поля более 7 символов начиаем автозаполнение
+                    if ($("#PhoneNum").val().replace(/[\sX-_]/g, "").length > 7) {                      
+                        //Автозаполнение по телефону
+                        $("#PhoneNum").autocomplete({
+                            source: '@Url.Action("AutocompletePhone")',
+                            select: function (event, ui) {
+                                $("#id").val(ui.item.id);
+                                $("#Surname").val(ui.item.surname);
+                                $("#Name").val(ui.item.name);
+                                $("#Middlename").val(ui.item.middlename);
+                                $("#Date_Birth").val(ui.item.bd.split("-").reverse().join("."));
+                                $("#Passport").val(ui.item.passport).mask("9999 999999");
+                                $("#EmployeeNum").val(ui.item.emplnum);
+                                $("#SendSms").val(ui.item.sendsms);
+                                $("#Residence").val(ui.item.residence);
+                                $("#Email").val(ui.item.email);
+                                $("#SendEmail").val(ui.item.sendemail);
+                                $("#Email2").val(ui.item.email2);
+                                $("#SendEmail2").val(ui.item.sendemail2);
+                                $("#Department").val(ui.item.departament);
+                                $("#Site").val(ui.item.site);
+                                $("#Company").val(ui.item.company);
+                                $("#Post").val(ui.item.post);
+                                $("#ShiftNum").val(ui.item.shiftnum);
+                            },
+                        });
+                    }
+                });
+               //Автозаполнение по участку
+                $("#Department").autocomplete({
+                    source: '@Url.Action("AutocompleteDepartment")',
+                    minLength: 1, //минимальная длина слова для начала поиска
+                    //заполняем поля на форме при наведении на запись
+                    //lable - отображаем список участок - цех - подразделение
+                    //value - значение Departament - формируем всё в контроллере
+                    focus: function (event, ui) {
+                        $("#Site").val(ui.item.Site);
+                        $("#Company").val(ui.item.Company);
+                    },
+             });
+
+            //Автозаполнение по цеху
+                 $("#Site").autocomplete({
+                    source: '@Url.Action("AutocompleteSite")',
+                    focus: function (event, ui) {
+                        $("#Company").val(ui.item.Company);
+                    },
+               });
+
+           //Автозаполнение по подразделению
+                 $("#Company").autocomplete({
+                    source: '@Url.Action("AutocompleteCompany")',
+             });
+
+         //Автозаполнение по должности
+           $("#Post").autocomplete({
+                    source: '@Url.Action("AutocompletePost")',
+             });
+
+
+            //Очистка полей при пустом поле Surname
+                $("#Surname").blur(function () {
+                    if ($("#Surname").val() === "" && $("#id").val()!=="") {
+                        empty();
+                    }
+                });
+
+            $("#clear").click(function () {
+                empty()
+            });
+
+        //Функция очистки полей
+            function empty() {
+                $("#id").val("");
+                $("#Surname").val("");
+                $("#Name").val("");
+                $("#Middlename").val("");
+                $("#Date_Birth").val("");
+                $("#Passport").val("");
+                $("#EmployeeNum").val("");
+                $("#PhoneNum").val("");
+                $("#SendSms").val("False");
+                $("#Residence").val("");
+                $("#Email").val("");
+                $("#SendEmail").val("False");
+                $("#Email2").val("");
+                $("#SendEmail2").val("False");
+                $("#Department").val("");
+                $("#Site").val("");
+                $("#Company").val("");
+                $("#Post").val("");
+                $("#ShiftNum").val("");
+            };
+
+           //Изменение пассажира
+                 $("#SaveEditPass").click(function () {
+                    //Проверяем на обязательность заполнения полей
+                    if ($("#Surname").val() === "")
+                    { alert("Введите Фамилию!"); return false; }
+                    if ($("#Name").val() === "")
+                    { alert("Введите Имя!"); return false; }
+                    if ($("#Passport").val() === "")
+                    { alert("Введите паспортные данные!"); return false; }
+                    if ($("#Site").val() === "")
+                    { alert("Укажите цех (желательно полносьтю место работы)!"); return false; }
+
+                    var urlsave = "@Url.Action("SaveEditPassenger")";
+                    var urladd = "@Url.Action("EditPassenger")";
+                    var urlconfirmphone = "@Url.Action("SaveEditPassenger", new { confirmphone = "yes" })";
+                    var SaveEditPassenger = {
+                        Id: $("#id").val(),
+                        Surname: $("#Surname").val(),
+                        Name: $("#Name").val(),
+                        Middlename: $("#Middlename").val(),
+                        Date_Birth: $("#Date_Birth").val(),
+                        Passport: $("#Passport").val().replace(/[\s]+/g, ''),
+                        EmployeeNum: $("#EmployeeNum").val(),
+                        //удаляем лишние символы из ноера телефона, так как вводбыл по маске
+                        PhoneNum: $("#PhoneNum").val().replace(/[\s-]+/g, ''),
+                        SendSms: $("#SendSms").val(),
+                        Residence: $("#Residence").val(),
+                        Email: $("#Email").val(),
+                        SendEmail: $("#SendEmail").val(),
+                        Email2: $("#Email2").val(),
+                        SendEmail2: $("#SendEmail2").val(),
+                        Department: $("#Department").val(),
+                        Site: $("#Site").val(),
+                        Company: $("#Company").val(),
+                        Post: $("#Post").val(),
+                        ShiftNum: $("#ShiftNum").val()
+                    };
+                    $.post(urlsave, SaveEditPassenger).done(function (result) {
+                        if (result != "Изменено") {
+                            if (result.indexOf('Номер телефона') !== -1) { //если нажали ДА
+                                confirm(result) ? $.post(urlconfirmphone, SaveEditPassenger).done(function () {
+                                   
+                                    //Отображение надписи пассажир добавлен
+                                    setTimeout(function () {
+                                        $("#saveok").css({ "visibility": "visible" });
+                                    }, 2000);
+                                    setTimeout(function () {
+                                        $("#saveok").css({ "visibility": "hidden" });
+                                    }, 4000);
+                                }) : false; //если нет
+
+                            }
+                            //если сообщение пришло о совпавших паспортных данных или табельного номера
+                            else {
+                                alert(result);
+                            }                      
+                        }
+                        else {
+                            setTimeout(function () {
+                                $("#saveok").css({ "visibility": "visible" });
+                            }, 500);
+                            setTimeout(function () {
+                                $("#saveok").css({ "visibility": "hidden" });
+                            }, 2000);
+
+                            //Это вариант с очищением формы после сохранения
+                            /////
+                            //$("#editpass").fadeOut(1000);
+                            //$(".footer").hide();
+                            //$("#editpass").load(urladd).fadeIn(2000);
+                            ////Отображение надписи пассажир добавлен
+                            //setTimeout(function () {
+                            //    $("#saveok").css({ "visibility": "visible" });
+                            //}, 2000);
+                            //setTimeout(function () {
+                            //    $("#saveok").css({ "visibility": "hidden" });
+                            //}, 4000);
+                        }
+                    });
+              });
+
+        //Удаление пассажира
+          $("#delete").click(function () {
+                    //Проверяем на обязательность заполнения полей
+                    if ($("#id").val() === "")
+              { alert("Выберите пассажира!"); return false; }
+                    var urldelete = "@Url.Action("DeletePassenger")";
+                    var urladd = "@Url.Action("EditPassenger")";
+                    confirm("Удалить?") ?
+                    $.post(urldelete, { Id: $("#id").val() }).done(function (result) {
+                        if (result != "Удалено") {
+                            alert(result);
+                        }
+                        else {
+                            $("#editpass").slideToggle(500);
+                            $(".footer").hide("slow");
+                            $("#editpass").load(urladd).slideToggle(500);
+                            //Отображение надписи пассажир добавлен
+                            setTimeout(function () {
+                                $("#saveok").css({ "visibility": "visible" }).text("Пассажир успешно удалён из базы");
+                            }, 1000);
+                            setTimeout(function () {
+                                $("#saveok").css({ "visibility": "hidden" });
+                            }, 3000);
+                            }
+                        }) :false;
+              });
+
+        });//Function
+
+    </script>
+
+}

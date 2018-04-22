@@ -1,0 +1,31 @@
+﻿@model IEnumerable<AirFlight.Models.RegistrationList>
+@using AirFlight.Models
+
+@{
+    ViewBag.Title = "Администрирование";
+}
+<h3 style="text-align:center">Статистика администартора системы</h3>
+<div id="adminstatistic">
+     <div id="click"></div> 
+</div>
+ 
+              
+ @section scripts
+{
+   <script type="text/javascript">
+       $(window).ready(function () {
+           $.ajaxSetup({ cache: false });
+           $("#ui-datepicker-div").remove();
+           $(".dropdown-toggle").dropdown();
+
+       });
+
+       $(function () {
+        //Отображение статистики по клику на радио
+
+        $("#click").load("@Url.Action("CountClick")")
+
+       });
+
+ </script>
+ }

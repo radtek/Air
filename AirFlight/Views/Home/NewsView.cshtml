@@ -1,0 +1,29 @@
+﻿@model IEnumerable<AirFlight.Models.New>
+
+
+@{
+    ViewBag.Title = "Новости";
+}
+
+    <h3 style="text-align:center">Изменения в системе регистрации пассажиров</h3>
+    <table border="0" style="width:100%">
+
+        @foreach (var item in Model)
+        {
+            <tr>
+                 <td rowspan="2" style="width:12%">
+                  <h4 style="color:deepskyblue">@(ViewBag.DateNews = item.Date.ToLongDateString())</h4>
+                </td>
+                <td rowspan="1" style="width:75%">
+                <h3>@item.Header</h3>
+                </td>
+             </tr>
+            <tr>
+                <td rowspan="1" style="width:75%">
+                <p style="font-size:12pt;text-align:justify">@item.Content</p>
+                </td>
+            </tr>    
+        }
+    </table>
+
+

@@ -1,0 +1,356 @@
+﻿@model IEnumerable<AirFlight.Models.RegistrationList>
+
+@{
+    ViewBag.Title = "Список вылетающих";
+}
+<br />
+<div style="width:300mm;margin:auto">
+    <p style="float:left">@Html.ActionLink("Вернуться к выбору рейсов", "ChoosePrintFlights")</p>
+    <p style="float:right">@Html.ActionLink("Печать", null, null, new { @class = "print" })</p>
+</div>
+<br />
+    <div id="PrintList" style="width:230mm; margin:0 auto;font-family:Arial">
+        @{foreach (var FlyID in ViewBag.FlightNumS)
+            {
+                var datefly = Model.FirstOrDefault(f => f.FlightID == FlyID);              
+            <p style="text-align:center; margin-bottom:1px;font-size:14pt">Список работников Заказчика к заявке на полёт на воздушном судне</p>
+            <div style="border-bottom: 1px solid;width:230mm;margin:0 auto"></div>
+            <table style="width:100%;text-align:right;font-size:9pt">
+                <tr>
+                    <td><b>Форма №66</b></td>
+                </tr>
+                <tr>
+                    <td><b>Утверждена приказом АК "АЛРОСА" (ПАО)</b></td>
+                </tr>
+                <tr>
+                    <td><b>от_______________№___________</b></td>
+                </tr>
+            </table>
+            <table style="font-size:14pt">
+                <tr>
+                    <td>Заказчик</td>
+                    <td><ins><b>Нюрбинский ГОК АК "АЛРОСА" (ПАО)</b></ins></td>
+                </tr>
+                <tr>
+                    <td>Исполнитель</td>
+                    <td><ins><b>Авиакомпания "АЛРОСА" (ПАО)</b></ins></td>
+                </tr>
+                <tr>
+                    <td>Список работников</td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>К заявке на полёт №&emsp;&emsp;&nbsp;</td>
+                    <td><ins>"&emsp;&emsp;"</ins></td>
+                </tr>
+                <tr>
+                    <td>Дата вылета</td>
+                    <td><ins>@datefly.Flight.FlightDate.ToLongDateString()</ins></td>
+                </tr>
+                <tr>
+                    <td><b>Вылет в рейс</b></td>
+                    <td><b>@datefly.Flight.FlightTime.ToString().Substring(0, datefly.Flight.FlightTime.ToString().Length - 3) Рейс № @datefly.Flight.FlightNum </b></td>
+                </tr>
+            </table>
+
+            <table border="1" style="text-align:center;width:230mm;font-size:13pt;border-collapse:collapse">
+                <tr>
+                    <td rowspan="2" style="text-align:center;font-size:13pt">№</td>
+                    <td rowspan="2" style="text-align:center;font-size:13pt">Фамилия Имя Отчество<br />(полностью)</td>
+                    <td rowspan="2" style="text-align:center; font-size:11pt;padding-left:10px;padding-right:10px">Номер документа,<br />удостоверяющего<br />личность</td>
+                    <td rowspan="2" style="text-align:center;font-size:13pt;padding-left:10px;padding-right:10px">Таб.№</td>
+                    <td colspan="2" style="text-align:center;font-size:13pt">Маршрут<br />перевозки</td>
+                    <td rowspan="2" style="text-align:left; font-size:11pt;padding-left:10px;padding-right:10px"> С правилами<br />техники<br />безопасности<br />при посадке-<br />высадке в ВС<br />и в полёте<br />ознакомлен<br />(подпись) </td>
+                </tr>
+                <tr>
+                    <td style="text-align:center;font-size:13pt;width:20mm">от<br />пункта</td>
+                    <td style="text-align:center;font-size:13pt;width:20mm">до<br />пункта</td>
+                </tr>
+
+                @{
+                    var registration = Model.Where(f => f.FlightID == FlyID);
+                    int i = 1;
+                    int c = registration.Count();
+                    foreach (var item in registration)
+                    {   
+                        string passport = item.Passenger.Passport.Trim().Substring(0, 4) + " " + item.Passenger.Passport.Trim().Substring(4, item.Passenger.Passport.Trim().ToString().Length - 4);
+                        ViewBag.departure = item.Flight.Departure;
+                        ViewBag.arrival = item.Flight.Arrival;
+                        <tr>
+                            <td style="padding-left:10px;padding-right:10px">@(i++)</td>
+                            <td style="text-align:left;padding-left:10px">@item.Passenger.Surname @item.Passenger.Name @item.Passenger.Middlename</td>
+                            <td>@passport</td>
+                            <td>@item.Passenger.EmployeeNum</td>
+                            <td style="padding-left:10px;padding-right:10px">@ViewBag.departure</td>
+                            <td style="padding-left:10px;padding-right:10px">@ViewBag.arrival</td>
+                            <td style="width:25mm"></td>
+                        </tr>
+                    }
+                    for (int d = 1; d <= 30 - c; d++)
+                    {
+
+                        <tr>
+                            <td>@(i++)</td>
+                            <td style="text-align:left;padding-left:10px">@Html.TextBox("fio", null, new { @style = "border:none; width:80mm"})</td>
+                            <td>@Html.TextBox("pass", null, new { @style = "border:none; width:30mm;text-align:center" })</td>
+                            <td>@Html.TextBox("emplnum", null, new { @style = "border:none;width:17mm;text-align:center"})</td>
+                            <td>@ViewBag.departure</td>
+                            <td>@ViewBag.arrival</td>
+                            <td></td>
+                        </tr>                        
+                    }
+                }
+                <tr>
+                    <td colspan="6" style="text-align:right;padding-right:10px;font-size:16pt"><b>Всего пассажиров</b></td>
+                    <td><b>@Html.TextBox("total", null, new { @style = "border:none; width:20mm;text-align:center;font-size:16pt" })</b></td>
+                </tr>
+            </table>
+            <br />
+            <br />
+            <table border="0" style="page-break-after:always;width:230mm;font-size:13pt" >
+                <tr>
+                    <td colspan="4" style="font-size:13pt;padding-left:15mm"><b>Заказчик: </b>диспетчер НГОК </td>
+                    <td colspan="4" style="font-size:13pt;padding-left:10mm"><b>Исполнитель: </b>агент МАП</td>
+                </tr>
+                <tr>
+                    <td colspan="8" style="font-size:13pt">&nbsp;</td>
+                </tr>
+                <tr>
+                    <td style="width:25mm;font-size:11pt;border-bottom: 1px solid">&nbsp;</td>
+                    <td style="width:15mm">&nbsp;</td>
+                    <td style="width:20mm; border-bottom: 1px solid;padding-left:20pt"><input autocomplete="on" type="text" style="border:none;font-size:13pt;padding-left:1cm" value="@ViewBag.Signature" /></td>
+                    <td style="width:30mm"></td>
+                    <td style="width:25mm;font-size:11pt;border-bottom: 1px solid">&nbsp;</td>
+                    <td style="width:15mm">&nbsp;</td>
+                    <td style="width:20mm; border-bottom: 1px solid;padding-left:20pt"><input autocomplete="on" type="text" style="border:none;" value="" /></td>
+                    <td style="width:30mm"></td>
+                </tr>
+                <tr>
+                    <td style="width:25mm;font-size:11pt;margin-top:1px;text-align:center">(подпись)</td>
+                    <td style="width:15mm">&nbsp;</td>
+                    <td style="width:20mm;font-size:11pt; text-align:center">(расшифровка подписи)</td>
+                    <td style="width:30mm"></td>
+                    <td style="width:25mm;font-size:11pt;margin-top:1px;text-align:center">(подпись)</td>
+                    <td style="width:15mm">&nbsp;</td>
+                    <td style="width:20mm;font-size:11pt; text-align:center">(расшифровка подписи)</td>
+                    <td style="width:30mm"></td>
+                </tr>
+                <tr>
+                    <td colspan="8" style="font-size:13pt">&nbsp;</td>
+                </tr>
+                <tr>
+                    <td style="width:25mm;font-size:13pt;margin-top:1px;text-align:center">М.П.</td>
+                    <td style="width:15mm">&nbsp;</td>
+                    <td style="width:20mm"></td>
+                    <td style="width:30mm"></td>
+                    <td style="width:25mm;font-size:13pt;margin-top:1px;text-align:center">М.П.</td>
+                    <td style="width:15mm">&nbsp;</td>
+                    <td style="width:20mm"></td>
+                    <td style="width:30mm"></td>
+                </tr>
+            </table>
+            <br/>
+            <br/>
+            <br />
+            <br />
+            <div style="font-family:Arial">
+                <p style="text-align:center;font-size:18pt;margin:0"><b>Справка</b></p>
+                <p style="text-align:center;font-size:13pt;margin:0">о весе багажа, груза и его свойствах, предлагаемого к перевозке</p>
+                <p style="text-align:center;font-size:13pt;margin:0"><ins>внутри фюзеляжа, на внешней подвеске ВС</ins></p>
+                <p style="text-align:center; margin-top:1px;font-size:11pt">(ненужное зачеркнуть)</p>
+            </div>
+            <br />
+            <table border="1" style="font-size:13pt; text-align:center; width:230mm;border-collapse:collapse">
+                <tr>
+                    <td  rowspan="2" style="width:10mm">№ п/п</td>
+                    <td  rowspan="2" style="width:55mm"><ins>Наименование груза</ins><br />(указать габариты и<br /> основные свойства)</td>
+                    <td rowspan="2" style="width:25mm">Род упаковки</td>                   
+                    <td colspan="2" style="width:50mm">Маршрут перевозок</td>
+                    <td rowspan="2" style="width:30mm">Количество мест</td>
+                    <td rowspan="2" style="width:25mm">Вес (кг)</td>
+                </tr>
+                <tr>
+                    <td>от пункта</td>
+                    <td>до пункта</td>
+                </tr>
+                <tr>
+                    <td  style="width:10mm">1</td>
+                    <td>Ручная кладь</td>
+                    <td>@Html.TextBox("tara", null, new { @style = "border:none; width:20mm;text-align:center" })</td>
+                    <td>@ViewBag.departure</td>
+                    <td>@ViewBag.arrival</td>
+                    <td>@Html.TextBox("seat", null, new { @style = "border:none; width:25mm;text-align:center" })</td>
+                    <td>@Html.TextBox("vight", null, new { @style = "border:none; width:25mm;text-align:center" })</td>
+                </tr>
+                <tr>
+                    <td  style="width:10mm">2</td>
+                    <td>Тех. груз</td>
+                    <td>@Html.TextBox("tara", null, new { @style = "border:none; width:20mm;text-align:center" })</td>
+                    <td>@ViewBag.departure</td>
+                    <td>@ViewBag.arrival</td>
+                    <td>@Html.TextBox("seat", null, new { @style = "border:none; width:25mm;text-align:center" })</td>
+                    <td>@Html.TextBox("vight", null, new { @style = "border:none; width:25mm;text-align:center" })</td>
+                </tr>
+                <tr>
+                    <td>3</td>
+                    <td>Спецпитание</td>
+                    <td>@Html.TextBox("tara", null, new { @style = "border:none; width:20mm;text-align:center" })</td>
+                    <td>@ViewBag.departure</td>
+                    <td>@ViewBag.arrival</td>
+                    <td>@Html.TextBox("seat", null, new { @style = "border:none; width:25mm;text-align:center" })</td>
+                    <td>@Html.TextBox("vight", null, new { @style = "border:none; width:25mm;text-align:center" })</td>
+                </tr>
+                <tr>
+                    <td>@Html.TextBox("num", null, new { @style = "border:none; width:10mm;text-align:center" })</td>
+                    <td>@Html.TextBox("nametara", null, new { @style = "border:none; width:55mm;text-align:center" })</td>
+                    <td>@Html.TextBox("tara", null, new { @style = "border:none; width:20mm;text-align:center" })</td>
+                    <td>@Html.TextBox("depart", null, new { @style = "border:none; width:20mm;text-align:center" })</td>
+                    <td>@Html.TextBox("arriv", null, new { @style = "border:none; width:20mm;text-align:center" })</td>
+                    <td>@Html.TextBox("seat", null, new { @style = "border:none; width:25mm;text-align:center" })</td>
+                    <td>@Html.TextBox("vight", null, new { @style = "border:none; width:25mm;text-align:center" })</td>
+                </tr>
+                <tr>
+                    <td>@Html.TextBox("num", null, new { @style = "border:none; width:10mm;text-align:center" })</td>
+                    <td>@Html.TextBox("nametara", null, new { @style = "border:none; width:55mm;text-align:center" })</td>
+                    <td>@Html.TextBox("tara", null, new { @style = "border:none; width:20mm;text-align:center" })</td>
+                    <td>@Html.TextBox("dep", null, new { @style = "border:none; width:20mm;text-align:center" })</td>
+                    <td>@Html.TextBox("arriv", null, new { @style = "border:none; width:20mm;text-align:center" })</td>
+                    <td>@Html.TextBox("seat", null, new { @style = "border:none; width:25mm;text-align:center" })</td>
+                    <td>@Html.TextBox("vight", null, new { @style = "border:none; width:25mm;text-align:center" })</td>
+                </tr>
+                <tr>
+                    <td colspan="5" style="text-align:right; font-size:16px;padding-right:10px"><b>ИТОГО</b></td>
+                    <td>@Html.TextBox("seattotal", null, new { @style = "border:none; width:25mm;text-align:center" })</td>
+                    <td>@Html.TextBox("vighttotal", null, new { @style = "border:none; width:25mm;text-align:center" })</td>
+                </tr>
+            </table>
+            <br />
+            <br />
+            <br />
+            <table border="0">
+                <tr>
+                    <td colspan="4" style="width:115mm;font-size:13pt;padding-left:5mm; padding-top:1px">Багаж и груз к осмотру предоставил</td>
+                    <td colspan="4" style="width:115mm;font-size:13pt;padding-left:5mm">Осмотр упаковки, контрольное взвешивание<br /> багажа и груза проверил</td>
+                </tr>
+                <tr>
+                    <td colspan="8" style="font-size:11pt">&nbsp;</td>                 
+                </tr>
+                <tr>
+                    <td colspan="4" style="width:115mm;font-size:13pt;padding-left:5mm"><b>От заказчика: </b>диспетчер НГОК</td>
+                    <td colspan="4" style="width:115mm;font-size:13pt;padding-left:5mm"><b>Представитель МАП:</b></td>
+                </tr>
+                <tr>
+                    <td colspan="8" style="font-size:11pt">&nbsp;</td>
+                </tr>
+                <tr>
+                    <td style="width:25mm;font-size:13pt;border-bottom: 1px solid">&nbsp;</td>
+                    <td style="width:15mm">&nbsp;</td>
+                    <td style="width:20mm; border-bottom: 1px solid;padding-left:20pt"><input autocomplete="on" type="text" style="border:none;font-size:13pt;padding-left:1cm" value="@ViewBag.Signature" /></td>
+                    <td style="width:30mm"></td>
+                    <td style="width:25mm;font-size:13pt;border-bottom: 1px solid">&nbsp;</td>
+                    <td style="width:25mm;font-size:13pt;border-bottom: 1px solid">&nbsp;</td>                   
+                    <td colspan="2" style="width:20mm; border-bottom: 1px solid;padding-left:20pt"><input autocomplete="on" type="text" style="border:none;font-size:13pt" value="" /></td>
+                    
+                </tr>
+                <tr>
+                    <td style="width:30mm;font-size:11pt;margin-top:1px;text-align:center">(подпись)</td>
+                    <td style="width:20mm">&nbsp;</td>
+                    <td style="width:30mm;font-size:11pt; text-align:center">(расшифровка подписи)</td>
+                    <td style="width:30mm"></td>
+                    <td style="width:30mm;font-size:11pt;margin-top:1px;text-align:center">(должность)</td>                    
+                    <td style="width:30mm;font-size:11pt;margin-top:1px;text-align:center">(подпись)</td>                   
+                    <td colspan="2" style="font-size:11pt; text-align:center;width:40mm">(расшифровка подписи)</td>                    
+                </tr>
+                <tr>
+                    <td colspan="8" style="font-size:13pt">&nbsp;</td>
+                </tr>
+                <tr>
+                    <td style="width:30mm;font-size:13pt;margin-top:1px;text-align:center">М.П.</td>
+                    <td style="width:20mm">&nbsp;</td>                         
+                    <td style="width:30mm; font-size:13pt;border-bottom: 1px solid;padding-left:10mm"><input style="border:none" type="text" value="@datefly.Flight.FlightDate.ToLongDateString()" /></td>
+                    <td style="width:30mm">&nbsp;</td>
+                    <td style="width:10mm"></td> 
+                  
+                      <td style="width:20mm;font-size:13pt;margin-top:1px;text-align:center">М.П.</td>
+  
+                      <td style="width:35mm">&nbsp;</td>                   
+                    <td style="width:30mm"></td>
+                </tr>
+                <tr>
+                    <td colspan="8" style="width:100mm;font-size:20pt;">&nbsp;</td>
+                </tr>
+               
+                <tr>
+                    <td colspan="4" style="width:115mm;font-size:13pt;padding-left:5mm"></td>
+                    <td colspan="4" style="width:115mm;font-size:13pt;padding-left:5mm"><b>От заказчика: </b>диспетчер ЦОП НГОК</td>                   
+                </tr>
+                <tr>                    
+                    <td colspan="8" style="font-size:13pt">&nbsp;</td>
+                </tr>
+                <tr>
+                    <td colspan="4" style="width:100mm;font-size:13pt;">&nbsp;</td>
+                    <td style="width:25mm;font-size:11pt;border-bottom: 1px solid">&nbsp;</td>
+                    <td style="width:15mm">&nbsp;</td>
+                    <td style="width:20mm; border-bottom: 1px solid;padding-left:20pt;"><input autocomplete="on" type="text" style="border:none;font-size:13pt;padding-left:1cm" value="@ViewBag.Signature" /></td>
+                    <td style="width:30mm"></td>                  
+                </tr>
+                <tr>
+                    <td colspan="4" style="width:15mm">&nbsp;</td>
+                    <td style="width:25mm;font-size:11pt;margin-top:1px;text-align:center">(подпись)</td>
+                    <td style="width:15mm">&nbsp;</td>
+                    <td style="width:20mm;font-size:11pt; text-align:center">(расшифровка подписи)</td>
+                    <td style="width:30mm"></td>                   
+                </tr>
+                <tr>
+                    <td colspan="8" style="font-size:13pt">&nbsp;</td>
+                </tr>
+                <tr>
+                    <td colspan="4"></td>
+                    <td style="width:30mm;font-size:13pt;margin-top:1px;text-align:right">М.П.</td>
+                    <td colspan="3">&nbsp;</td>                    
+                </tr>
+            </table>
+            <br />
+            <div style="page-break-after:always" ></div>
+                }
+        }         
+    </div> 
+
+<br />
+<br />
+    <div style="width:300mm;margin:auto">
+        <p style="float:left">@Html.ActionLink("Вернуться к выбору рейсов", "ChoosePrintFlights")</p>
+        <p style="float:right">@Html.ActionLink("Печать", null, null, new { @class = "print" })</p>
+    </div>
+<br/>
+<br/>
+
+@section scripts
+{
+    <script type="text/javascript">
+        $(window).ready(function () {          
+            $.ajaxSetup({ cache: false }); 
+            $(".dropdown-toggle").dropdown();
+        });
+        //Задаём маску для табельного номера
+          $(function ($) {
+            $(".emplnum").mask("9999", { placeholder: " " })       
+
+        //Задаём маску для паспортных данных       
+            $(".pass").mask("9999 999999", { placeholder: " " })      
+      
+        //печать рейсов
+        $(".print").click(function (e) {
+            e.preventDefault();           
+            $("#PrintList").print({
+                globalStyles: false,
+                // не показывать страницу перед печатью
+                iframe: true,          
+            });
+        });
+     })//--function
+   
+    </script>
+}
+
+

@@ -1,87 +1,73 @@
 ﻿@model AirFlight.Models.IndexViewModel
 @{
-    ViewBag.Title = "Управление";
+    ViewBag.Title = "Личный кабинет";
 }
 
-<h2>@ViewBag.Title.</h2>
+<h4 class="text-success">@ViewBag.StatusMessage</h4>
+<h4 id="saveok" style="visibility:hidden; text-align:center;color:deepskyblue">Почтовый ящик успешно изменён</h4>
+<br />
 
-<p class="text-success">@ViewBag.StatusMessage</p>
-<div>
-    <h4>Изменение параметров учетной записи</h4>
-    <hr />
-    <dl class="dl-horizontal">
-        <dt>Пароль:</dt>
-        <dd>
-            [
-            @if (Model.HasPassword)
-            {
-                @Html.ActionLink("Смена пароля", "ChangePassword")
-            }
-            else
-            {
-                @Html.ActionLink("Создать", "SetPassword")
-            }
-            ]
-        </dd>
-        <dt>Внешние имена входа:</dt>
-        <dd>
-            @Model.Logins.Count [
-            @Html.ActionLink("Управление", "ManageLogins") ]
-        </dd>
-        @*
-            Phone Numbers can used as a second factor of verification in a two-factor authentication system.
-             
-             See <a href="https://go.microsoft.com/fwlink/?LinkId=403804">this article</a>
-                for details on setting up this ASP.NET application to support two-factor authentication using SMS.
-             
-             Uncomment the following block after you have set up two-factor authentication
-        *@
-        @*  
-            <dt>Номер телефона:</dt>
-            <dd>
-                @(Model.PhoneNumber ?? "None")
-                @if (Model.PhoneNumber != null)
-                {
-                    <br />
-                    <text>[&nbsp;&nbsp;@Html.ActionLink("Change", "AddPhoneNumber")&nbsp;&nbsp;]</text>
-                    using (Html.BeginForm("RemovePhoneNumber", "Manage", FormMethod.Post, new { @class = "form-horizontal", role = "form" }))
-                    {
-                        @Html.AntiForgeryToken()
-                        <text>[<input type="submit" value="Remove" class="btn-link" />]</text>
+     <h3>Изменение параметров учетной записи</h3>
+        <hr />
+
+        <h5>
+            <b>Пароль:</b> @Html.ActionLink("Изменить пароль", "ChangePassword")
+        </h5>
+        <br />
+        <h5>
+           <b>Введите email для уведомлений:</b>
+      </h5>
+      <h5>
+    @Html.Editor("EmailSend", new { htmlAttributes = new { @class = "form-control", @placeholder = "Email@alrosa.ru", value = @ViewBag.EmailSend } })
+    </h5>
+     <h5 style="padding-left:5.5cm">
+      @Html.ActionLink("Сохранить", "SaveEmailSend", null, new { @class = "emailsend", onclick = "return false" })
+     </h5> 
+      
+        <br />
+        <br />
+@section scripts
+    {
+    <script type="text/javascript">
+        $(window).ready(function () {
+            //запрещаем браузеру кэшировать данные AJAX
+            $.ajaxSetup({ cache: false });
+            $(".dropdown-toggle").dropdown();
+        });
+
+        $(function ($) {
+
+            $("#EmailSend").inputmask("*{1,30}@@\\alros\\a.ru", { showMaskOnHover: false, placeholder: "" });
+
+            $(".emailsend").click(function (e) {
+            e.preventDefault();
+            var urlpost = $(this).attr('href');
+            var url = "@Url.Action("Index")";          
+            $.post(urlpost, { Emil: $("#EmailSend").val()}).done(function (result) {
+                    if (result != "Ok") {
+                        alert(result)
                     }
-                }
-                else
-                {
-                    <text>[&nbsp;&nbsp;@Html.ActionLink("Add", "AddPhoneNumber")
-                }
-            </dd>
-        *@
-        <dt>Двухфакторная проверка подлинности:</dt>
-        <dd>
-            <p>
-                There are no two-factor authentication providers configured. See <a href="https://go.microsoft.com/fwlink/?LinkId=403804">this article</a>
-                for details on setting up this ASP.NET application to support two-factor authentication.
-            </p>
-            @*@if (Model.TwoFactor)
-                {
-                    using (Html.BeginForm("DisableTwoFactorAuthentication", "Manage", FormMethod.Post, new { @class = "form-horizontal", role = "form" }))
-                    {
-                        @Html.AntiForgeryToken()
-                        <text>Включено
-                        <input type="submit" value="Отключить" class="btn btn-link" />
-                        </text>
+                    else {
+                        setTimeout(function () {
+                            $(".footer").hide();
+                            $.get(url); 
+                            
+                        }, 400)
+                        setTimeout(function () {
+                            $("#saveok").css({ "visibility": "visible" });
+                        }, 2000);
+                        setTimeout(function () {
+                            $("#saveok").css({ "visibility": "hidden" });
+                        }, 4000);
                     }
-                }
-                else
-                {
-                    using (Html.BeginForm("EnableTwoFactorAuthentication", "Manage", FormMethod.Post, new { @class = "form-horizontal", role = "form" }))
-                    {
-                        @Html.AntiForgeryToken()
-                        <text>Отключено
-                        <input type="submit" value="Включить" class="btn btn-link" />
-                        </text>
-                    }
-                }*@
-        </dd>
-    </dl>
-</div>
+                }) 
+            });
+          
+
+        });
+</script>
+}
+
+
+
+

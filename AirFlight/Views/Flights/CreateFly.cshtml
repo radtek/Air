@@ -1,0 +1,48 @@
+﻿@{
+    Layout = null;//не использовать мастер страницу
+}
+
+@model AirFlight.Models.Flight
+@using (Html.BeginForm("CreateFly"))
+{ 
+      <td>        
+        @Html.EditorFor(model => model.FlightDate, new { htmlAttributes = new { @class = "form-control" } })
+     </td>    
+      <td>@Html.EditorFor(model => model.FlightTime, new { htmlAttributes = new { @class = "form-control" } })
+      </td>
+      <td width="7%">
+          @Html.DropDownListFor(model => model.FlightNum, new SelectList(new string[] { "1", "2", "3", "4" }), new { @class = "form-control" })
+      </td>
+
+    <td width="12%" style="align-content:center"> 
+        @Html.DropDownListFor(model => model.Departure, new SelectList(new string[] { "Мирный", "Накын", "Нюрба", "" }), new { @class = "form-control" })
+    </td>
+    <td width="12%">
+        @Html.DropDownListFor(model => model.Arrival, new SelectList(new string[] { "Накын", "Мирный", "Нюрба","" }), new { @class = "form-control" })
+    </td>
+    <td style="align-items:center">
+      @Html.DropDownListFor(model => model.AirType, new SelectList(new string[] { "Самолёт", "Вертолёт"}), new { @class = "form-control"  })
+    </td>
+    <td>
+       @Html.DropDownListFor(model => model.Approved, new SelectList(new string[] { "Открыта", "Ограничена", "Закрыта", "Приостановлена" }), new { @class = "form-control" }) 
+    </td>
+    <td>
+        @Html.EditorFor(model => model.Note, new { htmlAttributes = new { @class = "form-control" } })
+     </td>
+    <td>
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+
+                <input type="submit" value="Добавить" class="btn btn-default" />
+
+            </div>
+        </div>
+    </td>
+
+
+}
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+
+}

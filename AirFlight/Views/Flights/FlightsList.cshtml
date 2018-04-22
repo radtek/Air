@@ -1,0 +1,1017 @@
+﻿@model IEnumerable<AirFlight.Models.Flight>
+@{
+    ViewBag.Title = "Регистрация рейсов";
+}
+
+@{ //Подсчёт количества зарегистрированных пользователей в списке
+    List<int> countp = new List<int>();
+    foreach (var i in ViewBag.registrationlist)
+    { countp.Add(i); }
+}
+<div id="fly">
+    <div id="search-block-form" style="position:absolute; right:120px;top:70px;overflow:no-display">
+        <input style="display:none" id="idpass" value="@ViewBag.findpassenger">
+        <div class="form-item">
+            <input type="text" id="findpass" value="@ViewBag.findepassenger" placeholder="Поиск пассажира...">
+        </div>
+        <div class="form-actions">
+            <input type="button" id="find" value="Поиск" class="form-submit">
+        </div>
+    </div>
+    <h4>&nbsp;</h4>
+    <h3 style="text-align:center">Регистрация рейсов</h3>
+    @if (@ViewBag.ChoosDate == 0) { ViewBag.ColorR = "mediumblue"; } else { ViewBag.ColorR = ""; }
+    @if (@ViewBag.ChoosDate == 1) { ViewBag.ColorD = "mediumblue"; } else { ViewBag.ColorD = ""; }
+    <h4 style="text-align:center">
+        Выберите период с
+        <ins id="ViewDateStart" style="color:@ViewBag.ColorR"><input id="StartDate" type="text" style="text-align:center; width:1pt;visibility:hidden" value="@ViewBag.SD" name="StartDate" />@ViewBag.StartDate</ins>&nbsp;
+        по <ins id="ViewDateEnd" style="color:@ViewBag.ColorR"><input id="EndDate" type="text" style="text-align:center; width:1pt;visibility:hidden" value="@ViewBag.ED" name="EndDate" />@ViewBag.EndDate</ins>
+        Или укажите дату вылета <ins id="ViewCurrentDate" style="color:@ViewBag.ColorD"><input id="CurrentDate" type="text" style="text-align:center; width:1pt;visibility:hidden" value="@ViewBag.CD" name="CurrentDate" />@ViewBag.CurrentDate</ins>
+        <input id="ChoosDate" type="text" style="text-align:center; width:1pt;visibility:hidden" value="@ViewBag.ChoosDate" name="ChoosDate" />
+    </h4>
+    <h4 style="text-align:center">
+        Укажите направление вылета: @Html.DropDownList("selectRoute", new List<SelectListItem>() {
+new SelectListItem { Text = "Все направления", Value = "0"},
+new SelectListItem { Text = "Мирный-Накын",  Value = "1"},
+new SelectListItem { Text = "Накын-Мирный",  Value = "2"},
+new SelectListItem { Text = "Нюрба-Накын",   Value = "3"},
+new SelectListItem { Text = "Накын-Нюрба",   Value = "4"},
+new SelectListItem { Text = "Вилюйск-Накын", Value = "5" },
+new SelectListItem { Text = "Накын-Вилюйск", Value = "6" },
+new SelectListItem { Text = "Накын-Чукар", Value = "7" },
+new SelectListItem { Text = "Чукар-Накын", Value = "8" },
+new SelectListItem { Text = "Кюндядя-Накын", Value = "9" },
+new SelectListItem { Text = "Накын-Кюндядя", Value = "10" },
+new SelectListItem { Text = "Малыкай-Накын", Value = "11" },
+new SelectListItem { Text = "Накын-Малыкай", Value = "12" } },
+new { @style = "selected:false; border:none;" })
+
+    </h4>
+    <table class="table  table-hover" style="text-align:center">
+        <tr class="grad-grey-table">
+            <th style="text-align:center;width:3cm">Время</th>
+            <th style="text-align:center;width:2.5cm">№ рейса</th>
+            <th style="text-align:center;width:3.5cm">От куда</th>
+            <th style="text-align:center;width:3.5cm">Куда</th>
+            <th style="text-align:center;width:3.5cm">Тип в/c</th>
+            <th style="text-align:center;width:4.6cm">Регистрация</th>
+            <th style="text-align:center;width:3cm">Всего</th>
+            <th style="text-align:center;width:3cm"><img class="sms-info" style="cursor:help" src="~/Image/sms-info.png" /></th>
+            <th style="text-align:center">Примечание</th>
+            <th style="text-align:right;padding-right:20mm;width:8cm">Действия</th>
+        </tr>
+        @foreach (var day in Model.Select(d => d.FlightDate).Distinct())
+        {
+            /*Строка с названием дня недели*/
+            <tr>
+                <td colspan="10" style="font-size:14pt;font-style:italic;font-family:'Segoe Print';padding:1px" class="grad">
+                    <b>@day.ToString("dddd"), @day.ToString("D")</b>
+                </td>
+            </tr>
+            foreach (var item in Model.Where(f => f.FlightDate == day)
+                .OrderByDescending(f => f.Departure == "Мирный" && f.Arrival == "Накын")
+                .ThenByDescending(f => f.Departure == "Накын" && f.Arrival == "Мирный")
+                .ThenByDescending(f => f.Departure == "Нюрба" && f.Arrival == "Накын")
+                .ThenByDescending(f => f.Departure == "Накын" && f.Arrival == "Нюрба")
+                .ThenByDescending(f => f.Departure == "Накын" && f.Arrival == "Вилюйск")
+                .ThenByDescending(f => f.Departure == "Вилюйск" && f.Arrival == "Накын")
+                .ThenBy(f => f.FlightNum))
+            {
+                //определяыем цвет строки
+                switch (item.Approved.Trim())
+                {
+                    case "Открыта":
+                        ViewBag.Color = "prostobelur";
+                        break;
+                    case "Ограничена":
+                        ViewBag.Color = "info";
+                        break;
+                    case "Приостановлена":
+                        ViewBag.Color = "danger";
+                        break;
+                    case "Закрыта":
+                        ViewBag.Color = "warning";
+                        break;
+                    case "В архиве":
+                        ViewBag.Color = "grad-archive";
+                        break;
+                }
+                //Если мы выбрали изменить рейс
+                if (ViewBag.IDI == item.id)
+                {
+                    //если регистрация закрыта то разрешаем изменить только время тип воздушного судна и примечание
+                    if (item.Approved == "Закрыта")
+                    {
+                        <tr style="text-align:center" class=@ViewBag.Color>
+                            <td style="display:none">@Html.EditorFor(model => item.id, new { htmlAttributes = new { @class = "form-control" } })</td>
+                            <td><input type="text" style="text-align:center" class="form-control" id="item_FlightTime" value="@item.FlightTime.ToString().Substring(0, 5)" /></td>
+                            <td>@Html.DisplayFor(modelItem => item.FlightNum)</td>
+                            <td>@Html.DisplayFor(modelItem => item.Departure)</td>
+                            <td>@Html.DisplayFor(modelItem => item.Arrival)</td>
+                            <td>@Html.DropDownListFor(model => item.AirType, new SelectList(new string[] { "Самолёт", "Вертолёт" }, item.AirType.Trim()), new { @class = "form-control" })</td>
+                            <td>@Html.DropDownListFor(model => item.Approved, new SelectList(new string[] { "Открыта", "Ограничена", "Закрыта", "Приостановлена" }, item.Approved.Trim()), new { @class = "form-control" })</td>
+                            <td style="color:@(item.Number - countp.Count(p => p == item.id) < 0 ? "chocolate" : "black")">@(ViewBag.countp = countp.Count(p => p == item.id) + " из " + Html.DisplayFor(modelItem => item.Number))</td>
+                            <td style="padding-left:3.5cm" colspan="2">@Html.EditorFor(model => item.Note, new { htmlAttributes = new { @class = "form-control" } })</td>
+                            <td style="text-align:right;padding-right:10mm">
+                                @Html.ActionLink("Сохранить", "FlightsList", new { edit = 0 }, new { @class = "saveflychange", onclick = "return false" }) |
+                                @Html.ActionLink("Отменить", "FlightsList", new { edit = 0 }, new { @class = "canceleditfly", onclick = "return false" })
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        <tr style="text-align:center" class=@ViewBag.Color>
+                            <td style="display:none">@Html.EditorFor(model => item.id, new { htmlAttributes = new { @class = "form-control" } })</td>
+                            <td><input type="text" style="text-align:center" class="form-control" id="item_FlightTime" value="@item.FlightTime.ToString().Substring(0, 5)" /></td>
+                            <td>@Html.DropDownListFor(model => item.FlightNum, new SelectList(new string[] { "1", "2", "3", "4" }, item.FlightNum.ToString().Trim()), new { @class = "form-control" }) </td>
+                            <td>@Html.DropDownListFor(model => item.Departure, new SelectList(new string[] { "Мирный", "Накын", "Нюрба", "Вилюйск", "Чукар", "Кюндядя", "Малыкай" }, item.Departure.Trim()), new { @class = "form-control" })</td>
+                            <td>@Html.DropDownListFor(model => item.Arrival, new SelectList(new string[] { "Накын", "Мирный", "Нюрба", "Вилюйск", "Чукар", "Кюндядя", "Малыкай" }, item.Arrival.Trim()), new { @class = "form-control" })</td>
+                            <td>@Html.DropDownListFor(model => item.AirType, new SelectList(new string[] { "Самолёт", "Вертолёт" }, item.AirType.Trim()), new { @class = "form-control" })</td>
+                            <td>@Html.DropDownListFor(model => item.Approved, new SelectList(new string[] { "Открыта", "Ограничена", "Закрыта", "Приостановлена" }, item.Approved.Trim()), new { @class = "form-control" })</td>
+                            <td>@Html.EditorFor(model => item.Number, new { htmlAttributes = new { @class = "form-control" } })</td>
+                            <td style="padding-left:3.5cm" colspan="2">@Html.EditorFor(model => item.Note, new { htmlAttributes = new { @class = "form-control" } })</td>
+                            <td style="text-align:right;padding-right:10mm">
+                                @Html.ActionLink("Сохранить", "FlightsList", new { edit = 0 }, new { @class = "savefly", onclick = "return false" }) |
+                                @Html.ActionLink("Отменить", "FlightsList", new { edit = 0 }, new { @class = "canceleditfly", onclick = "return false" })
+                            </td>
+                        </tr>
+                    }
+                }
+                //если не выбрано изменить регистрацию
+                else
+                {
+                    <tr style="text-align:center" class=@ViewBag.Color>
+                        <td style="display:none"> @Html.DisplayFor(model => item.id) </td>
+                        <td> @Html.DisplayFor(modelItem => item.FlightTime).ToString().Substring(0, 5) </td>
+                        <td> @Html.DisplayFor(modelItem => item.FlightNum) </td>
+                        <td> @Html.DisplayFor(modelItem => item.Departure) </td>
+                        <td> @Html.DisplayFor(modelItem => item.Arrival) </td>
+                        <td> @Html.DisplayFor(modelItem => item.AirType) </td>
+                        <td> @Html.DisplayFor(modelItem => item.Approved) </td>
+                        @*Считаем количество пассажиров на рейсе*@
+                        <td style="color:@(item.Number - countp.Count(p => p == item.id) < 0 ? "chocolate" : "black")">@(ViewBag.countp = countp.Count(p => p == item.id) + " из " + Html.DisplayFor(modelItem => item.Number))</td>
+                        @*Отображение статуса отправки при закрытой регистрации*@
+                        @if (item.Approved == "Закрыта" || item.Approved == "В архиве")
+                        {
+                            if (countp.Count(p => p == item.id) == 0)
+                            {
+                                <td style="text-align:center;width:1cm"><img style="cursor:help" class="sms-nulllist" src="~/Image/sms-nulllist.png" /></td>
+                            }
+                            else
+                            {
+                                switch (item.SendingSms)
+                                {
+                                    case null:
+                                        if (item.FlightDate <= DateTime.Now.Date)
+                                        {
+                                            <td style="text-align:center;width:1cm"><img style="cursor:help" class="sms-notsend" src="~/Image/sms-notsend.png" ) /></td>
+                                        }
+                                        else
+                                        {
+                                            <td style="text-align:center;width:1cm"><img style="cursor:help" class="sms-wait" src="~/Image/sms-wait.png" ) /></td>
+                                        }
+                                        break;
+                                    case false:
+                                        <td style="text-align:center;width:1cm"><img style="cursor:help" class="sms-notsend" src="~/Image/sms-notsend.png" /></td>
+                                        break;
+                                    case true:
+                                        <td style="text-align:center;width:1cm"><img style="cursor:help" class="sms-send" src="~/Image/sms-send.png" /></td>
+                                        break;
+                                }
+                            }
+                        }
+                        //если регистрация не закрыта то и статус не показываем
+                        else
+                        {
+                            <td></td>
+                        }
+                        @******Конец блока статуса отправки*@
+                        <td>@Html.DisplayFor(model => item.Note)</td>
+                        @switch (item.Approved)
+                        {
+                            case "В архиве":
+                                <td style="text-align:right">
+                                    @Html.ActionLink("Посмотреть", "Registration", new { FlightID = item.id }, new { @class = "choose" }) |
+                                    @Html.ActionLink("Открыть pdf", "ShowFiles", new { FlightID = item.id }, new { @class = "showfiles", target = "_blank" })
+                                </td>
+                                break;
+                            case "Закрыта":
+                                if (item.FlightDate < DateTime.Now.Date)
+                                {//если дата рейса меньше сегодняшней даты, то убираем ссылку изменить
+                                    @* проверка загруженного документа *@
+                                    if (string.IsNullOrWhiteSpace(item.DocsName))
+                                    {
+                                        <td style="text-align:right">
+                                            <a style="color:darkgrey" class="nodocs">В архив</a> |
+                                            @Html.ActionLink("Посмотреть", "Registration", new { FlightID = item.id }, new { @class = "choose" }) |
+                                            @Html.ActionLink("Загрузить pdf", null, null, new { @class = "uploadFile", onclick = "return false" })
+                                        </td>
+                                    }
+                                    else
+                                    {
+                                        <td style="text-align:right">
+                                            @Html.ActionLink("В архив", "SendArchive", new { FlightID = item.id }, new { @class = "inarchive", onclick = "return false" }) |
+                                            @Html.ActionLink("Посмотреть", "Registration", new { FlightID = item.id }, new { @class = "choose" }) |
+                                            @Html.ActionLink("Действие с pdf", null, null, new { @class = "eventFile", onclick = "return false" })
+                                        </td>
+                                    }
+                                }
+                                else
+                                {
+                                    if (string.IsNullOrWhiteSpace(item.DocsName))
+                                    {
+                                        <td style="text-align:right">
+                                            @Html.ActionLink("Изменить", "FlightsList", new { edit = 1, idi = item.id, StartDate = ViewBag.SD, EndDate = ViewBag.ED }, new { @class = "editfly", onclick = "return false" }) |
+                                            @Html.ActionLink("Выбрать", "Registration", new { FlightID = item.id }, new { @class = "choose" }) |
+                                            @Html.ActionLink("Загрузить pdf", null, null, new { @class = "uploadFile", onclick = "return false" })
+                                        </td>
+                                    }
+                                    else
+                                    {
+                                        <td style="text-align:right">
+                                            @Html.ActionLink("В архив", "SendArchive", new { FlightID = item.id }, new { @class = "inarchive", onclick = "return false" }) |
+                                            @Html.ActionLink("Посмотреть", "Registration", new { FlightID = item.id }, new { @class = "choose" }) |
+                                            @Html.ActionLink("Действие с pdf", null, null, new { @class = "eventFile", onclick = "return false" })
+                                        </td>
+                                    }
+                                }
+                                break;
+                            default:
+                                <td style="text-align:right">
+                                    @Html.ActionLink("Изменить", "FlightsList", new { edit = 1, idi = item.id, StartDate = ViewBag.SD, EndDate = ViewBag.ED }, new { @class = "editfly", onclick = "return false" }) |
+                                    @Html.ActionLink("Выбрать", "Registration", new { FlightID = item.id }, new { @class = "choose" }) |
+                                    @*если список не содержит пользователей то его можно удалить.*@
+                                    @if (ViewBag.registrationlist.Contains(item.id))
+                                    {
+                                        <a style="color:darkgrey" class="deleteno">Удалить</a>
+                                    }
+                                    else
+                                    {//если есть зарегесрированные пользователи то запрещаем удалять рейс
+                                        @Html.ActionLink("Удалить", "DeleteFly", new { id = item.id }, new { @class = "deletefly", onclick = "return false" })
+                                    }
+                                </td>
+                                break;
+                        }
+                    </tr>
+                } //else
+            }//foreach item
+        }@*foreach day*@
+
+        @*Добавляем новый рейс*@
+        @if (ViewBag.Create == 1)
+        {
+            <tr style="background-color:moccasin">
+                <td colspan="10"></td>
+            </tr>
+            <tr class="grad-grey-table">
+                <th style="text-align:center;">Дата</th>
+                <th style="text-align:center">Время</th>
+                <th style="text-align:center">№ рейса</th>
+                <th style="text-align:center">От куда</th>
+                <th style="text-align:center">Куда</th>
+                <th style="text-align:center">Тип в/c</th>
+                <th style="text-align:center;width:5cm">Регистрация</th>
+                <th style="text-align:center">Всего мест</th>
+                <th style="text-align:center">Примечание</th>
+                <th style="text-align:right;padding-right:2cm;width:7cm">Действия</th>
+            </tr>
+            <tr>
+                <td><input id="FlightDate" type="text" class="form-control" /></td>
+                <td>@Html.Editor("FlightTime", new { htmlAttributes = new { @class = "form-control" } })</td>
+                <td>@Html.DropDownList("FlightNum", new SelectList(new string[] { "1", "2", "3", "4" }), new { @class = "form-control" })</td>
+                <td>@Html.DropDownList("Departure", new SelectList(new string[] { "Мирный", "Накын", "Нюрба", "Вилюйск", "Чукар", "Кюндядя", "Малыкай" }), new { @class = "form-control" })</td>
+                <td>@Html.DropDownList("Arrival", new SelectList(new string[] { "Накын", "Мирный", "Нюрба", "Вилюйск", "Чукар", "Кюндядя", "Малыкай" }), new { @class = "form-control" })</td>
+                <td>@Html.DropDownList("AirType", new SelectList(new string[] { "Самолёт", "Вертолёт" }), new { @class = "form-control" })</td>
+                <td>@Html.DropDownList("Approved", new SelectList(new string[] { "Ограничена", "Открыта", "Закрыта", "Приостановлена" }), new { @class = "form-control" })</td>
+                <td>@Html.Editor("Number", new { htmlAttributes = new { @class = "form-control", @Value = "22" } })</td>
+                <td>@Html.Editor("Note", new { htmlAttributes = new { @class = "form-control" } })</td>
+                <td style="text-align:right;padding-right:20mm">@Html.ActionLink("Сохранить", "FlightsList", new { create = 0 }, new { @class = "saveadd", onclick = "return false" })</td>
+            </tr>
+        } @*if(ViewBag.Create==1)*@
+
+        @if (ViewBag.createtmpl == 1)
+        {
+            <tr style="background-color:moccasin">
+                <td colspan="10"></td>
+            </tr>
+            <tr class="grad-grey-table">
+                <th style="text-align:center">Дата</th>
+                <th colspan="2" style="text-align:center">Шаблон</th>
+                <th colspan="6" style="text-align:center"></th>
+                <th style="text-align:right;padding-right:2cm;width:5cm">Действия</th>
+            </tr>
+            <tr>
+                <td><input id="FlightDate" type="text" class="form-control" /></td>
+                <td colspan="2">@Html.DropDownList("TList", ViewBag.TmplList as SelectList, new { @class = "form-control", @style = "max-width:220px;width:100%" })</td>
+                <th colspan="6" style="text-align:center"></th>
+                <td style="text-align:right;padding-right:20mm">@Html.ActionLink("Сохранить", "FlightsList", new { createtmpl = 0 }, new { @class = "saveaddtmpl", onclick = "return false" })</td>
+            </tr>
+        }
+    </table>
+    @if (ViewBag.Create == 0 && ViewBag.createtmpl == 0)
+    {<p style="text-align:right">
+            @Html.ActionLink("Добавить рейсы по шаблону", "FlightsList", new { createtmpl = 1 }, new { @class = "addflytmpl", onclick = "return false" }) |
+            @Html.ActionLink("Добавить рейс", "FlightsList", new { create = 1 }, new { @class = "addfly", onclick = "return false" })
+        </p>
+    }
+    else
+    {
+        <p style="text-align:right">
+            @Html.ActionLink("Отменить", "FlightsList", new { create = 0, createtmpl = 0 }, new { @class = "canceladd", onclick = "return false" })
+        </p>
+    }
+
+</div>
+
+<script src="~/Scripts/jquery-3.1.1.intellisense.js"></script>
+
+@section scripts
+ {
+    <script type="text/javascript">
+
+        $(window).ready(function () {
+            $.ajaxSetup({ cache: false });
+             //Так как дерево DOM будет динамически загружено, то нам необходимо удалить все объекты Datapicker, иначе не он будет работать при загрузке страницы
+            $("#ui-datepicker-div").remove();
+            $("#ui-timepicker-div").remove();
+            //Для того что бы активировать DropDown menu обновляем его
+            $(".dropdown-toggle").dropdown();
+        });
+
+        //так как мы динмически подгружаем таблицу и всю страницу, а котекстное меню срабатывает при нажатии правой кнопки мышки на элементе td в статически прогруженном коде,
+        //то после обновления страницы контекстное меню перестаёт работать так как таблица в DOM дерево было прогружена динамически, а контекстное меню при этом
+        //осталось привязанным к статическому объекту, то мы при любом ajax обновлении страницы разрушаем ранее созданное contexMenu()
+        $(document).ajaxSend(function () {
+            $.contextMenu('destroy');
+            });  
+        $(function () {
+
+            //Выбор даты сортировки .datepicker("show") необходимо для автоматического отображения datapicker, так как поле у нас скрыто то мы отображаем его автоматически
+            $("#ViewDateStart").click(function () {
+                $("#ChoosDate").val(0);
+                $("#StartDate").datepicker({ showOtherMonths: true, selectOtherMonths: true, dateFormat: "yy-mm-dd", showAnim: "puff" }).datepicker("show");
+            });
+
+            //Выбор даты сортировки
+            $("#ViewDateEnd").click(function () {
+                $("#ChoosDate").val(0);
+                $("#EndDate").datepicker({ showOtherMonths: true, selectOtherMonths: true, dateFormat: "yy-mm-dd", showAnim: "puff" }).datepicker("show");
+            });
+
+            //Выбор даты сортировки
+            $("#ViewCurrentDate").click(function () {
+                $("#ChoosDate").val(1);
+                $("#CurrentDate").datepicker({ showOtherMonths: true, selectOtherMonths: true, dateFormat: "yy-mm-dd", showAnim: "puff" }).datepicker("show");
+            });
+
+            //Datapicker при создании рейса  minDate: "0" - запрещаем создавать рейсы с прошедшей датой
+            //showOtherMonths: true - отображать дни предыдущего месяца, selectOtherMonths: true - возможность их выбирать иначе они будут не активными
+
+            $("#FlightDate").datepicker({ showOtherMonths: true, selectOtherMonths: true, minDate: "0", dateFormat: "dd.mm.yy", showAnim: "puff" });
+
+            //timepicker при создании рейса
+            $("#FlightTime, #item_FlightTime").timepicker({
+                hourText: 'Часы',
+                minuteText: 'Минуты',
+                showPeriodLabels: false,
+            });
+
+            //Выбор дат
+            $("#StartDate, #EndDate, #CurrentDate").change(function () {
+                var url = "@Url.Action("FlightsList")?StartDate=" + $("#StartDate").val() + "&EndDate=" + $("#EndDate").val() + "&CurrentDate=" + $("#CurrentDate").val() + "&ChoosDate=" + $("#ChoosDate").val();
+                $(".footer").hide();
+                $.get(url, function (result) {
+                    setTimeout(function () {
+                        $("#fly").html(result);
+                    }, 400);
+                });
+            });
+
+            //Выбор направления вылета
+            $("#selectRoute").change(function () {
+                var url = "@Url.Action("FlightsList")";
+                var data = {
+                    selectRoute: $("#selectRoute").val()
+                };
+                $(".footer").hide();
+                $("#fly").load(url, data);
+            });
+
+            //Изменение рейса
+            $(".editfly").click(function (e) {
+                e.preventDefault;
+                var url = $(this).attr('href');
+                $(".footer").hide();
+                $("#fly").load(url);
+            });
+
+
+            //Сохранение при изменении
+            $(".savefly").click(function (e) {
+                e.preventDefault();
+                if ($("#item_Departure").val() === $("#item_Arrival").val())
+                { alert("Не верно выбрано направление(от куда-куда )!"); return false; }
+                if ($("#item_FlightTime").val() === "")
+                { alert("Укажите время вылета!"); return false; }
+                if ($("#item_Number").val() === "" || $("#item_Number").val() === "0")
+                { alert("Укажите количество пассажиров!"); return false; }
+                var urledit = "@Url.Action("EditFly", "Flights")";
+                var urlfly = $(this).attr('href');
+                var flight = {
+                    id: $("#item_id").val(),
+                    FlightTime: $("#item_FlightTime").val(),
+                    FlightNum: $("#item_FlightNum").val(),
+                    Departure: $("#item_Departure").val(),
+                    Arrival: $("#item_Arrival").val(),
+                    AirType: $("#item_AirType").val(),
+                    Approved: $("#item_Approved").val(),
+                    Number: $("#item_Number").val(),
+                    Note: $("#item_Note").val()
+                };
+                $(".footer").hide();
+                $.post(urledit, flight).done(setTimeout(function () {
+                    $("#fly").load(urlfly).fadeIn(500)
+                }, 500));
+            });
+
+             //Сохранение при изменении  и закрытой регисстрации
+            $(".saveflychange").click(function (e) {
+                e.preventDefault();
+                if ($("#item_FlightTime").val() === "")
+                { alert("Укажите время вылета!"); return false; }
+                var urledit = "@Url.Action("EditFly")";
+                var urlfly = $(this).attr('href');
+                var flight = {
+                    id: $("#item_id").val(),
+                    FlightTime: $("#item_FlightTime").val(),
+                    AirType: $("#item_AirType").val(),
+                    Approved: $("#item_Approved").val(),
+                    Note: $("#item_Note").val()
+                };
+                $(".footer").hide();
+                $.post(urledit, flight).done(setTimeout(function () {
+                    $("#fly").load(urlfly).fadeIn(500)
+                }, 500));
+            });
+
+            //Отмена изменения
+            $(".canceleditfly").click(function (e) {
+                e.preventDefault();
+                var url = $(this).attr('href');
+                $(".footer").hide();
+                $("#fly").load(url);
+            });
+
+            //Сообщение при нажатии на неактивную кнопку удалить
+            $(".deleteno").click(function (e) {
+                e.preventDefault();
+                alert("Удаление рейса невозможно, так как существуют\n\r зарегистрированные пользователи");
+            });
+
+            //удаление рейса
+            $(".deletefly").click(function (e) {
+                e.preventDefault();
+                var urldelete = $(this).attr('href');
+                var urlfly = "@Url.Action("FlightsList")";
+                confirm('Удалить?') ?
+                    $.post(urldelete).done(setTimeout(function () {
+                        $(".footer").hide();
+                        $("#fly").load(urlfly).fadeIn(500)
+                    }, 400)) : false;
+            });
+
+            //Добавляем рейс
+            $(".addfly").click(function (e) {
+                e.preventDefault();
+                var url = $(this).attr('href');
+                $(".footer").hide();
+                $("#fly").load(url);
+                //прокручиваем страницу вниз при добавлении нового рейса
+                var height = $("body").height();
+                $('html, body').animate({ scrollTop: height });
+            });
+
+            //***Добавление рейса по шаблону****////
+            //Добавляем рейс
+            $(".addflytmpl").click(function (e) {
+                e.preventDefault();
+                var url = $(this).attr('href');
+                $(".footer").hide();
+                $("#fly").load(url);
+                //прокручиваем страницу вниз при добавлении нового рейса
+                var height = $("body").height();
+                $('html, body').animate({ scrollTop: height });
+            });
+
+            //Отмена добавления рейса
+            $(".canceladd").click(function (e) {
+                e.preventDefault();
+                var url = $(this).attr('href');
+                $(".footer").hide();
+                $("#fly").load(url);
+            });
+
+            //Сохранение при добавлении рейса
+            $(".saveadd").click(function (e) {
+                e.preventDefault();
+                if ($("#Departure").val() === $("#Arrival").val())
+                { alert("Не верно выбрано направление(от куда-куда )!"); return false; }
+                if ($("#FlightDate").val() === "")
+                { alert("Выберите дату!"); return false; }
+                if ($("#FlightTime").val() === "")
+                { alert("Укажите время вылета!"); return false; }
+                if ($("#Number").val() === "")
+                { alert("Укажите количество пассажиров!"); return false; }
+
+                var urladd = "@Url.Action("CreateFly")";
+                var urlfly = $(this).attr('href');
+                var flight = {
+                    FlightDate: $("#FlightDate").val(),
+                    FlightTime: $("#FlightTime").val(),
+                    FlightNum: $("#FlightNum").val(),
+                    Departure: $("#Departure").val(),
+                    Arrival: $("#Arrival").val(),
+                    AirType: $("#AirType").val(),
+                    Approved: $("#Approved").val(),
+                    Number: $("#Number").val(),
+                    Note: $("#Note").val(),
+                    SendingEmail: false,
+                    HaveChange: false,
+                    FlightTimeOld: $("#FlightTime").val(),
+                    AirTypeOld: $("#AirType").val(),
+                    NoteOld: $("#Note").val()
+                }
+                $(".footer").hide();
+                $.post(urladd, flight, function (result) {
+                    if (result != "Ok") {
+                        alert(result)
+                    }
+                    else {
+                        setTimeout(function () {
+                            $("#fly").load(urlfly).show()
+                        }, 500)
+                    }
+                });
+            });
+
+            //****Сохранение при добавлении по шаблону*******/////
+            $(".saveaddtmpl").click(function (e) {
+                e.preventDefault();
+                if ($("#FlightDate").val() === "")
+                { alert("Выберите дату!"); return false; }
+                if ($("#TList").val() === "0")
+                { alert("Выберите шаблон для добавления!"); return false; }
+                var urladd = "@Url.Action("CreateFlyTmpl")";
+                var urlfly = $(this).attr('href');
+                var flight = {
+                    FlightDate: $("#FlightDate").val(),
+                    tmplnum: $("#TList").val()
+                }
+                $(".footer").hide();
+                $.post(urladd, flight, function (result) {
+                    if (result.indexOf('!') !== -1) //если в ответе существует знак восклицания
+                    {
+                        alert(result);
+                    }
+                    else {
+                        if (result != "Ok") {
+                            alert(result)
+                        }
+                        setTimeout(function () {
+                            $("#fly").load(urlfly).show()
+                        }, 500)
+                    }
+                })
+            });
+
+            //****************Поиск пассажира********************/////
+            $("#findpass").autocomplete({
+                source: '@Url.Action("AutocompleteFindPassenger")',
+                select: function (event, ui) {
+                    $("#idpass").val(ui.item.id);
+                    var url = "@Url.Action("FlightsList")";
+                    var data = {
+                        findpassenger: $("#idpass").val()
+                    };
+                    $(".footer").hide();
+                    $("#fly").load(url, data);
+                },
+            });
+
+            //Поиск при клике на значке лупы
+            $("#find").click(function () {
+                var url = "@Url.Action("FlightsList")";
+                var data = {
+                    findpassenger: $("#idpass").val()
+                };
+                $(".footer").hide();
+                $("#fly").load(url, data);
+            });
+
+            //отправляем значения idpass в контроллер при потере фокуса
+            $("#findpass").focusout(function () {
+                if ($("#findpass").val().length === 0) {
+                    var url = "@Url.Action("FlightsList")";
+                    var data = {
+                        findpassenger: $("#idpass").val()
+                    };
+                    $(".footer").hide();
+                    $("#fly").load(url, data);
+                }
+            });
+
+            $("#findpass").myTooltip({
+                offset: 15,
+                content: 'Введите первые буквы фамилии. Для отмены поиска очистите данное поле',
+                direction: 'bottom',
+                hideTime: 2000,
+                animateOffsetPx: 50, //animateDuration
+                action: 'click', //action:'hover', action:'click'
+                customClass: 'my-tooltip', //my-tooltip - это класс с закруглёнными краями
+            });
+
+            //очищаем поле поиска при нажатии на клавишу 8-backspace, 46 - del,
+            $("#findpass").keyup(function (e) {
+                if ($("#idpass").val() !== "0") {
+                    if (e.keyCode == 8 || e.keyCode == 46) {
+                        $("#idpass").val(0)
+                        $("#findpass").val("");
+                    }
+                }
+            })
+            ////*****************Конец блока поиска пассжира*************///////////////////
+
+
+            //***************контекстное меню**************//////////
+            //https://swisnl.github.io/jQuery-contextMenu/docs.html
+            //Определяем заголовок всплывающего меню при нажатии правой кнопки мыши. Сам класс описан в jquery.contextMenu.css
+
+            $('td').mousedown(function (event) {
+                //проверяем нажатие правой кнопкой мышки
+                if (event.button === 2) {
+                    var title = "Рейс №" + $(this).parents("tr").find('td:eq(2)').text() + ", " + $(this).parents("tr").find('td:eq(3)').text() + " - " + $(this).parents("tr").find('td:eq(4)').text();
+                    $('.data-title').attr('data-menutitle', title);
+                }
+            });
+            $.contextMenu({
+                selector: 'td',
+                className: 'data-title',
+                // trigger: 'right',
+                autoHide: true,
+                items: {
+                    "spar1": "-----------",
+                    Ограничена: {
+                        name: "Ограничить регистрацию",
+                        icon: "edit",
+                        visible: function (key, opt) {
+                            if ($(this).parents("tr").find('td:eq(10)').text().indexOf("В архив")!==-1 || $(this).parents("tr").find('td:eq(6)').text().trim() === "В архиве")
+                                return false;
+                            if ($(this).parents("tr").find('td:eq(6)').text().trim() !== "Ограничена")
+                                return true;
+                        }//visible
+                    }, //Ограничена
+                    Открыта: {
+                        name: "Открыть регистрацию",
+                        icon: "edit",
+                        visible: function (key, opt) {
+                            if ($(this).parents("tr").find('td:eq(10)').text().indexOf("В архив") !== -1 || $(this).parents("tr").find('td:eq(6)').text().trim() === "В архиве")
+                                return false;
+                            if ($(this).parents("tr").find('td:eq(6)').text().trim() !== "Открыта") {
+                                return true;
+                            }
+                        }//visible
+                    }, //Ограничена
+                    Закрыта: {
+                        name: "Закрыть регистрацию",
+                        icon: "edit",
+                        visible: function (key, opt) {
+                            if ($(this).parents("tr").find('td:eq(10)').text().indexOf("В архив") !== -1 || $(this).parents("tr").find('td:eq(6)').text().trim() === "В архиве")
+                                return false;
+                            if ($(this).parents("tr").find('td:eq(6)').text().trim() !== "Закрыта") {
+                                return true;
+                            }
+                        }//visible
+                    }, //Ограничена
+                    Приостановлена: {
+                        name: "Приостановить регистрацию",
+                        icon: "edit",
+                        visible: function (key, opt) {
+                            if ($(this).parents("tr").find('td:eq(10)').text().indexOf("В архив") !== -1 || $(this).parents("tr").find('td:eq(6)').text().trim() === "В архиве")
+                                return false;
+                            if ($(this).parents("tr").find('td:eq(6)').text().trim() !== "Приостановлена") {
+                                return true;
+                            }
+                        }//visible
+                    }//-->Приостановлена
+                   },//item
+                        callback: function (key, options) {
+                            var urlсlose = "@Url.Action("EditRegistration")";
+                            var url = "@Url.Action("FlightsList")";
+                            var data = {
+                                //находим ID рейса
+                                id: $(this).parents("tr").find('td:eq(0)').text(),
+                                Approved: key
+                            };
+                            $(".footer").hide();
+                            $.post(urlсlose, data, function (result) {
+                            if (result != "Ok") {
+                                alert(result);
+                              }
+                             else {
+                                 setTimeout(function () {
+                                        $("#fly").load(url);
+                                    }, 300)
+                                }
+                            });
+                        },
+                });//-->cintextmenu
+
+            //*******Отправляем заявку в архив*********////
+            $(".inarchive").click(function () {
+                var idfly = $(this).parents("tr").find('td:eq(0)').text();
+               var arch= $.confirm({
+                    title: 'Подтверждение добавления рейса в архив',
+                    type: 'orange',
+                    theme: 'dark',
+                    content: 'Внимание! После добавления рейса в архив дальнейшее его изменение будет невозможным! Вы действительно хотите продолжить?',
+                    buttons: {
+                        inarchive: {
+                            text: "В архив",
+                            action: function () {
+                                var urlarchive = "@Url.Action("EditRegistration")";
+                                var url = "@Url.Action("FlightsList")";
+                                var data = {
+                                    //находим ID рейса
+                                    id: idfly,
+                                    Approved: "В архиве"
+                                }
+                                $(".footer").hide();
+                                $.post(urlarchive, data, function (result) {
+                                    if (result != "Ok") {
+                                        alert(result);
+                                    }
+                                    else {
+                                        setTimeout(function () {
+                                            $("#fly").load(url);
+                                        }, 300)
+                                    }
+                                });
+                            },
+                        },
+                        Отмена: {
+
+                        }
+                    }
+                });
+            });
+
+            //Всплывающее меню на конверте
+            $(".sms-info").myTooltip({
+                offset: 15,
+                hideTime: 3000,
+                content: 'Информация и уведомления о рейсах',
+                direction: 'right',
+                action: 'click', //action:'hover', action:'click'
+                customClass: 'my-tooltip', //my-tooltip - это класс с закруглёнными краями
+            });
+            //Всплывающее меню
+            $(".sms-send").myTooltip({
+                offset: 15,
+                content: 'Смс уведомление отправлено',
+                direction: 'right',
+                hideTime: 3000,
+                animateOffsetPx: 100, //animateDuration
+                action: 'click', //action:'hover', action:'click'
+                customClass: 'my-tooltip', //my-tooltip - это класс с закруглёнными краями
+            });
+            //Всплывающее меню
+            $(".sms-notsend").myTooltip({
+                offset: 15,
+                hideTime: 3000,
+                content: 'При отправке смс возникли проблемы или не все пользователи получили смс',
+                direction: 'right',
+                animateOffsetPx: 100, //animateDuration
+                action: 'click', //action:'hover', action:'click'
+                customClass: 'my-tooltip', //my-tooltip - это класс с закруглёнными краями
+            });
+            //Всплывающее меню
+            $(".sms-wait").myTooltip({
+                offset: 15,
+                hideTime: 3000,
+                content: 'Уведомление ожидает отправки<br>(за 2 дня до вылета)',
+                direction: 'right',
+                animateOffsetPx: 100, //animateDuration
+                action: 'click', //action:'hover', action:'click'
+                customClass: 'my-tooltip', //my-tooltip - это класс с закруглёнными краями
+            });
+            //Всплывающее меню
+            $(".sms-nulllist").myTooltip({
+                offset: 15,
+                hideTime: 3000,
+                content: 'Нет пассажиров для отправки',
+                direction: 'right',
+                animateOffsetPx: 100, //animateDuration
+                action: 'click', //action:'hover', action:'click'
+                customClass: 'my-tooltip', //my-tooltip - это класс с закруглёнными краями
+            });
+
+            //******Загрузка файла в базу данных*************////
+            $(".uploadFile").click(function (e) {
+                e.preventDefault();
+                var flyid = $(this).parents("tr").find('td:eq(0)').text();
+                $.confirm({
+                    title: 'Выберите файл для сохранения',
+                    type: 'blue',
+                    theme: 'dark',
+                    columnClass: 'small',
+                    content:
+                    '<form enctype="multipart/form-data">' +
+                    '<div class="col-xs-10">' +
+                    '<div class="form-group" >' +
+                    '<lable id="fi"></lable>' +
+                    '<br />' +
+                    '<lable id="filename"></lable>' +
+                    '<input style="width:500px" type="file"  id="uploadpdf" accept=".pdf" />' +
+                    '</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '</form>',
+                    buttons: {
+                        Save: {
+                            text: 'Сохранить',
+                            // btnClass: 'btn-orange', //btn-orange, btn-blue
+                            action: function () {
+                                //var files = $('#uploadpdf').get()[0].files[0]; - не работает
+                                var files = document.getElementById('uploadpdf').files
+                                var upload = new FormData();
+                                upload.append('uploadfile', files[0])
+                                //если не выбран файл
+                                if (files.length == 0) {
+                                    $.alert({
+                                        type: 'orange',
+                                        theme: 'dark',
+                                        title: 'Файл не выбран!',
+                                        content: ''
+                                    });
+                                    return false;
+                                }
+                                else {
+                                    var xhr;//переменная ajax запроса
+                                    var radialObj; //переменная прогрессбара
+                                    var cf= $.confirm({  //cf - это для управления confirm через API
+                                        type: 'green',
+                                        theme: 'dark',
+                                        title: 'Началась загрузка файла...',
+                                        content: '<form style="width:100%; text-align:center">'+
+                                        '<div style="еу" id="progress" ></div>' +
+                                        '</form>',
+                                        buttons: {
+                                            close: {
+                                                text: 'Закрыть',
+                                                isDisabled: true
+                                            },
+                                            Отмена: {
+                                                action: function () {
+                                                    //отменяем загрузку файла
+                                                    xhr.abort()
+                                                },
+                                            },
+                                        },
+                                        onOpenBefore: function () {
+                                            //настройка прогресс бар
+                                            //http://ignitersworld.com/lab/radialIndicator.html#example
+                                            $("#progress").radialIndicator({
+                                                barWidth: 10,
+                                                roundCorner: true,
+                                                percentage: true,
+                                                radius: 40, //диаметр круга
+                                                barColor: {
+                                                    0: '#FF0000',
+                                                    33: '#FFFF00',
+                                                    66: '#0066FF',
+                                                    100: '#33CC33'
+                                                },
+                                            })
+                                        },
+                                        onContentReady: function () {
+                                           $.ajax({//загружаем файл
+                                                type: "POST",
+                                                url: '@Url.Action("UploadDocs")?flightid=' + flyid,
+                                                cache: false,
+                                                contentType: false,
+                                                processData: false,
+                                                data: upload,
+                                                success: function (result) {
+                                                    //делаем неактивной кнопку закрыть во время загрузки, после загрузки мы её разблокируем
+                                                    cf.buttons.close.enable()
+                                                    if (result !== "Ok") {
+                                                        cf.setType("red");
+                                                        cf.setTitle("Ошибка при загрузке файла");
+                                                        radialObj.option('barColor', '#FF0000');
+                                                        radialObj.animate(0);
+                                                         setTimeout(function () {
+                                                            $("#fly").load("@Url.Action("FlightsList")")
+                                                        }, 500);
+                                                    }
+                                                    else {
+                                                        cf.setTitle("Фйл успешно сохранён");
+                                                        setTimeout(function () {
+                                                            $("#fly").load("@Url.Action("FlightsList")")
+                                                        }, 500);
+                                                    }
+                                                },//-->success
+                                                //индикатор загрузки
+                                                xhr: function () {
+                                                    xhr = new window.XMLHttpRequest();
+                                                    xhr.upload.addEventListener("progress", function (e) {
+                                                        if (e.lengthComputable) {
+                                                            //var percentComplete = e.loaded / evt.total;
+                                                            //percentComplete = parseInt(percentComplete * 100);
+                                                            var percentComplete = (e.loaded || e.position) * 100 / e.total;
+                                                            //отображение процесс загрузки
+                                                            radialObj = $('#progress').data('radialIndicator');
+                                                            radialObj.animate(percentComplete);
+                                                            if (percentComplete === 100) {
+                                                            }
+                                                        }
+                                                    }, false);
+                                                    return xhr;
+                                                },//-->xhr
+                                            });//-->ajax
+                                        }//-->else confirm
+                                    });
+                                }//-->else
+                            },//-->actopn
+                        },//-->save
+                        Отмена: { }
+                    },
+                    onOpenBefore: function () {
+                        //оформляем поле выбора файла
+                        $("#uploadpdf").filestyle({
+                            buttonName: "btn-primary",
+                            placeholder: "Имя файла",
+                            buttonText: " Выбрать"
+                        });
+                    },
+                    onContentReady: function () {
+                        $("#uploadpdf").change(function () {
+                            $.get('@Url.Action("GetNewFileName")?flightid=' + flyid + '&filename=1').done(function (name) {
+                                $("#fi").text("При сохранении файл будет переименован в:");
+                                $("#filename").text(name);
+                            });
+
+                        })
+                    },
+                });
+            });
+
+            $(".nodocs").click(function () {
+                $.alert({
+                    type: 'orange',
+                    theme: 'dark',
+                    title: 'Нет загруженного документа!',
+                    content: 'Архивирование рейса без загруженного документа запрещено!'
+                })
+            })
+
+            $(".eventFile").click(function () {
+                var flyid = $(this).parents("tr").find('td:eq(0)').text();
+                $.confirm({
+                    title: 'Выберите действие с документом',
+                    type: 'blue',
+                    theme: 'dark',
+                    content: '',
+                    buttons: {
+                        Открыть: {
+                            action: function () {
+                                window.open('@Url.Action("ShowFiles")?flightid=' + flyid, '_blank')
+                            }
+                        },
+                        Удалить: {
+                            // btnClass: 'btn-orange', //btn-orange, btn-blue
+                            action: function () {
+                                $.post('@Url.Action("DeleteFile")?flightid=' + flyid, function (result) {
+                                    if (result != "Ok") {
+                                        $.alert({
+                                            type: 'red',
+                                            theme: 'dark',
+                                            title: 'Ошибка удаления',
+                                            content: result
+                                        })
+                                        return false;
+                                    }
+                                    else {
+                                            $("#fly").load("@Url.Action("FlightsList")");
+                                    }
+                                })//-->post
+                            }//-->action Да
+                        }, //-->Да
+                        Отмена: {}
+                    }//-->button
+                })//-->confirm
+
+            })
+         });//function
+
+    </script>
+}

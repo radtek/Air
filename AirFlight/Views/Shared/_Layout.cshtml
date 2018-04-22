@@ -3,11 +3,17 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <meta charset="utf-8" />
+    @*Ёбаная погань "режим совместимости" в браузере InternetExplorer не давала работать сайту нормально, всю душу выматала, поэтому используем следующую строку*@
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    @*<meta name="viewport" content="width=device-width, initial-scale=1.0">*@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@ViewBag.Title – приложение ASP.NET</title>
+    <title>@ViewBag.Title</title>
     @Styles.Render("~/Content/css")
-    @Scripts.Render("~/bundles/modernizr")
-
+    @Styles.Render("~/Content/themes/base/css")
+    @Scripts.Render("~/bundles/modernizr")      
+    <link rel="icon" href="/favicon.ico" /> 
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <link rel="yandex-tableau-widget" href="/manifest.json" />
 </head>
 <body>
     <div class="navbar navbar-inverse navbar-fixed-top">
@@ -17,29 +23,106 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
-                </button>
-                @Html.ActionLink("Имя приложения", "Index", "Home", new { area = "" }, new { @class = "navbar-brand" })
+                </button>                
             </div>
             <div class="navbar-collapse collapse">
                 <ul class="nav navbar-nav">
-                    <li>@Html.ActionLink("Домашняя страница", "Index", "Home")</li>
-                    <li>@Html.ActionLink("О программе", "About", "Home")</li>
-                    <li>@Html.ActionLink("Контакт", "Contact", "Home")</li>
-                </ul>
-                @Html.Partial("_LoginPartial")
-            </div>
+                    <li>@Html.ActionLink("Главная", "Index", "Home")</li>            
+                    <li class="nav dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">Списки<span class="caret"></span></a>
+                        <ul class="dropdown-menu navbar-inverse" role="menu">                            
+                            <li>@Html.ActionLink("Список рейсов", "Start", "List", null, new { @style = "color:darkgray" })</li>
+                            <li>@Html.ActionLink("Список пассажиров", "PassengersList", "List", new { selectRoute = 0 }, new { @style = "color:darkgray" })</li>
+                            <li class="divider"></li>
+                            <li>@Html.ActionLink("Телефонный справочник", "Phonebook", "List", null, new { @style = "color:darkgray" })</li>
+                        </ul>
+                    </li>
+                    @if (Request.IsAuthenticated && User.IsInRole("admin") || User.IsInRole("aviadispatcher"))
+                    {
+                    <li class="nav dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">Авиадиспетчер<span class="caret"></span></a>
+                        <ul class="dropdown-menu navbar-inverse" role="menu">
+                            <li>@Html.ActionLink("Регистрация рейсов", "FlightsList", "Flights", null, new { @style = "color:darkgray" })</li>
+                            <li>@Html.ActionLink("Шаблоны рейсов", "Templates", "Flights", null, new { @style = "color:darkgray" })</li>
+                            <li>@Html.ActionLink("Шаблоны пассажиров", "TemplatesPassengers", "Registration", null, new { @style = "color:darkgray" })</li>
+                            <li class="divider"></li>
+                            <li>@Html.ActionLink("Печатать, экспорт списков", "ChoosePrintFlights", "Flights", null, new { @style = "color:darkgray" })</li>
+                            </ul>
+                    </li>
+                    }
+                   @if (Request.IsAuthenticated && User.IsInRole("registrator") || User.IsInRole("viewpdf"))
+                   {
+                    <li class="nav dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">Регистрация<span class="caret"></span></a>
+                        <ul class="dropdown-menu navbar-inverse" role="menu">
+                            <li>@Html.ActionLink("Регистрация пассажиров", "Start", "Registration", null, new { @style = "color:darkgray" })</li>
+                            <li>@Html.ActionLink("Шаблоны пассажиров", "TemplatesPassengers", "Registration", null, new { @style = "color:darkgray" })</li>
+                            <li class="divider"></li>
+                            <li>@Html.ActionLink("Печать списков", "ChoosePrintFlights", "Registration", null, new { @style = "color:darkgray" })</li>
+                        </ul>
+                    </li>                 
+                    }
+                  @if (Request.IsAuthenticated && User.IsInRole("registrator"))
+                  {
+                    <li class="nav dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">Пассажиры<span class="caret"></span></a>
+                        <ul class="dropdown-menu navbar-inverse" role="menu">
+                            <li>@Html.ActionLink("Добавление нового пассажира", "AddPassenger", "Passengers", null, new { @style = "color:darkgray" })</li>
+                            <li>@Html.ActionLink("Редактирование или удаление", "EditPassenger", "Passengers", null, new { @style = "color:darkgray" })</li>
+                        </ul>
+                    </li>
+                  }
+                    <li class="nav dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">Информация<span class="caret"></span></a>
+                        <ul class="dropdown-menu navbar-inverse" role="menu">
+                            @if (Request.IsAuthenticated && User.IsInRole("admin") || User.IsInRole("aviadispatcher"))
+                            {
+                                <li><a style="color:darkgray" href="/Rules/rules_avia.pdf" target="_blank">Инструкция</a></li>
+                            }
+                            else
+                            {
+                               <li><a style="color:darkgray" href="/Rules/rules_registrator.pdf" target="_blank">Инструкция</a></li>
+                            }   
+                            <li>@Html.ActionLink("Новости", "NewsView", "Home", null, new { @style = "color:darkgray" })</li>
+                            <li>@Html.ActionLink("Контакты", "Contact", "Home", null, new { @style = "color:darkgray" })</li>
+                           
+                        </ul>
+                                        </li>
+                    @if (Request.IsAuthenticated && User.IsInRole("admin") || User.IsInRole("aviadispatcher") || User.IsInRole("Report"))
+                    {
+                    <li>@Html.ActionLink("Отчёты", "Start", "Report")</li>   
+                    }
+
+                    </ul>
+                    @Html.Partial("_LoginPartial")
+           </div>
         </div>
     </div>
-    <div class="container body-content">
+  
+    <div class="container body-content" >
         @RenderBody()
-        <hr />
-        <footer>
-            <p>&copy; @DateTime.Now.Year – приложение ASP.NET</p>
-        </footer>
+            <footer class="footer">
+                <hr style="margin:2px" />
+                <p style="color:darkgray;text-align:right">&copy; @DateTime.Now.Year – поддержка программисты ОФ №16</p>
+            </footer>
+     
     </div>
-
     @Scripts.Render("~/bundles/jquery")
-    @Scripts.Render("~/bundles/bootstrap")
-    @RenderSection("scripts", required: false)
+    @Scripts.Render("~/bundles/jqueryval")   
+    @Scripts.Render("~/bundles/jqueryui")
+    @Scripts.Render("~/bundles/inputmask")
+    @Scripts.Render("~/bundles/bootstrap") 
+    @Scripts.Render("~/bundles/CostumScript")
+    @RenderSection("scripts", required: false)  
+
+    @*<script src="~/Scripts/jquery-ui-1.12.1.js"></script>*@
+    <link href="~/Content/themes/base/jquery-ui.css" rel="stylesheet" />   
+    <link href="~/Content/combobox.css" rel="stylesheet" />
+    <link href="~/Content/jquery-confirm.min.css" rel="stylesheet" />
+    <link href="~/Content/jquery.contextMenu.css" rel="stylesheet" />   
+    <link href="~/Content/radioplayer.css" rel="stylesheet" />
+    <script src="~/Scripts/DatePickerLicalization.js"></script> 
+    <script src="~/Scripts/CostumScript/jQuery.print.js"></script>
 </body>
+
 </html>

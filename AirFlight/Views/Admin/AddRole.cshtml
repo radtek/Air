@@ -1,0 +1,224 @@
+﻿@model IEnumerable<AirFlight.Models.AspNetRole>
+@using AirFlight.Models
+@using Microsoft.AspNet.Identity;
+@{
+    ViewBag.Title = "Администрирование";
+}
+
+
+<div id="addrole">
+    <h3 style="text-align:center">Редактирование или удаление пользователя системы</h3>
+
+    <h4 id="saveok" style="visibility:hidden; text-align:center;color:deepskyblue">Изменения сохранены</h4>
+
+    <form class="form-horizontal">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-6">
+
+                    <div class="row form-group">
+                        @Html.Label("Выберите пользователя", htmlAttributes: new { @class = "control-label col-md-4" })
+                        @Html.DropDownList("UList", ViewBag.UserList as SelectList, new { @class = "form-control col-md-3", @style = "max-width:320px;width:100%" })
+                    </div>
+
+                    @if (ViewBag.UserId != null && ViewBag.UserId != "0")
+                    {
+                        <div class="row form-group">
+                            @Html.Label("Логин", htmlAttributes: new { @class = "control-label col-md-4" })
+                            @if (Request.IsAuthenticated && User.IsInRole("admin") || User.IsInRole("changepassword"))
+                            {
+                                <h5 class="col-md-6">@ViewBag.Login &emsp; @Html.ActionLink("Изменить пароль", "ChangePasswordAdmin", "Manage", new { UserId = ViewBag.UserId }, new { })</h5>
+                            }
+                            else
+                            {
+                                <h5 class="col-md-6">@ViewBag.Login &emsp; <a style="color:gray" class="col-md-3">Изменить пароль</a></h5>
+                            }
+                        </div>
+                        <div class="row form-group">
+                            @Html.Label("Рабочий телефон", htmlAttributes: new { @class = "control-label col-md-4" })
+                            <input type="text" style="max-width:320px;width:100%" class="form-control col-md-3" id="Phone" placeholder="XXXXX" value="@ViewBag.Phone" />
+                        </div>
+                        <div class="row form-group">
+                            @Html.Label("Фамилия", htmlAttributes: new { @class = "control-label col-md-4" })
+                            <input type="text" style="max-width:320px;width:100%" class="form-control col-md-3" id="Surname" placeholder="XXXXX" value="@ViewBag.Surname" />
+                        </div>
+                        <div class="row form-group">
+                            @Html.Label("Имя", htmlAttributes: new { @class = "control-label col-md-4" })
+                            <input type="text" style="max-width:320px;width:100%" class="form-control col-md-3" id="Name" placeholder="XXXXX" value="@ViewBag.Name" />
+                        </div>
+                        <div class="row form-group">
+                            @Html.Label("Отчество", htmlAttributes: new { @class = "control-label col-md-4" })
+                            <input type="text" style="max-width:320px;width:100%" class="form-control col-md-3" id="LastName" placeholder="XXXXX" value="@ViewBag.LastName" />
+                        </div>
+                        <div class="row form-group">
+                            @Html.Label("Заместитель", htmlAttributes: new { @class = "control-label col-md-4" })
+                            @Html.DropDownList("ZList", ViewBag.ZamList as SelectList, new { @class = "form-control col-md-3", @style = "max-width:320px;width:100%" })
+                        </div>
+                        <div class="row form-group">
+                            @Html.Label("Подпись в списках", htmlAttributes: new { @class = "control-label col-md-4" })
+                            <input type="text" style="max-width:320px;width:100%" autocomplete="on" class="form-control col-md-3" id="Signature" value="@ViewBag.Signature" />
+                        </div>
+                    }
+                </div>
+                <div class="col-lg-6">
+                    @*//проверяем не пустой ли ID пользователя*@
+                    @{if (ViewBag.UserId != null && ViewBag.UserId != "0")
+                        {
+                            <table class="table  table-hover table-striped AutoNumberRow" style="width:600px;">
+                                <tr class="grad-grey-table">
+                                    <th style="text-align:center;width:10px">№</th>
+                                    <th style="text-align:center">Выбор</th>
+                                    <th style="">Роль</th>
+                                </tr>
+                                @foreach (var item in Model)
+                                {
+                                    <tr>
+                                        <td style="text-align:center"></td>
+                                        @*//@if (Request.IsAuthenticated && (User.IsInRole("admin") || User.IsInRole("changepassword")) && (item.Name == "admin" || item.Name == "changepassword"))*@
+                                        @if (Request.IsAuthenticated && User.IsInRole("admin") && item.Name == "admin")
+                                        {
+                                            <td style="text-align:center"><input class="selectedRoles" type="checkbox" name="selectedRoles" value="@item.Id" @(ViewBag.RoleUserId.Contains(item.Id) ? "checked=\"checked\"" : "") /></td>
+                                        }
+                                        else if (Request.IsAuthenticated && !(User.IsInRole("admin")) && item.Name == "admin")
+                                        {
+                                            <td style="text-align:center"> </td>
+                                        }
+                                        else if (Request.IsAuthenticated && User.IsInRole("changepassword") || User.IsInRole("admin") && item.Name == "changepassword")
+                                        {
+                                            <td style="text-align:center"><input class="selectedRoles" type="checkbox" name="selectedRoles" value="@item.Id" @(ViewBag.RoleUserId.Contains(item.Id) ? "checked=\"checked\"" : "") /></td>
+                                        }
+                                        else if (Request.IsAuthenticated && !(User.IsInRole("changepassword")) && item.Name == "changepassword")
+                                        {
+                                            <td style="text-align:center"> </td>
+                                        }
+
+                                        else
+                                        {
+                                            <td style="text-align:center"><input class="selectedRoles" type="checkbox" name="selectedRoles" value="@item.Id" @(ViewBag.RoleUserId.Contains(item.Id) ? "checked=\"checked\"" : "") /></td>
+                                        }
+                                        <td>@item.Description</td>
+                                    </tr>
+                                }
+                            </table>
+                        }
+                    }
+                </div>
+            </div>
+
+            @{if (ViewBag.UserId != null && ViewBag.UserId != "0")
+                {
+                    <div class="row form-group">
+                        <div class="col-lg-4"></div>
+                        <div class="col-sm-2 ">
+                            <input type="button" id="SaveEditURole" class="btn btn-primary btn-sm btn-block btn-info" value="Сохранить" />
+                        </div>
+                        <div class="col-sm-2 ">
+                            <input type="button" id="DeleteUser" class="btn btn-primary btn-sm btn-block btn-warning" value="Удалить" />
+                        </div>
+                    </div>
+                }
+            }
+
+        </div>
+    </form>
+
+    <br />
+    <br />
+</div>
+
+
+@section scripts
+{@Scripts.Render("~/bundles/jqueryval")
+<script type="text/javascript">
+        $(window).ready(function () {
+            $.ajaxSetup({ cache: false });
+            $(".dropdown-toggle").dropdown();
+
+        });
+  $(function () {
+       //При выборе пользователя выводим роли
+             $("#UList").change(function () {
+                 var url = "@Url.Action("AddRole")?UserId=" + $("#UList").val();
+                 $("#addrole, .footer").hide();
+                 $("#addrole").load(url).fadeIn(1000);
+            });
+
+
+        //Сохраняем роли
+             $("#SaveEditURole").click(function () {
+                 var url = "@Url.Action("AddRole")?UserId=" + $("#UList").val();
+                 var urlsave = "@Url.Action("SaveRole")";
+                 //собираем все выбранные checkbox в массив
+                 var role = [];
+                 $(".selectedRoles:checkbox:checked").each(function () {
+                     role.push($(this).val());
+                 });
+                 var data = {
+                     //Массив можно передать и ввиде строки
+                     //selectRole : role.toString(), в контроллере тогда нужно написать string selectRole вместо string[] selectRole
+                     //Мы же передаём ввиде списка
+                     'selectRole[]': role,
+                     //'selectRole[]': role,
+                     UserId: $("#UList").val(),
+                     Surname: $("#Surname").val(),
+                     Name: $("#Name").val(),
+                     LastName: $("#LastName").val(),
+                     Phone: $("#Phone").val(),
+                     ZamId: $("#ZList").val(),
+                     Signature: $("#Signature").val()
+                 }
+                 //Если отправляем запрос Get то в контроллере необходимо прописать  return Json(values, JsonRequestBehavior.AllowGet);
+                 //Для $.post не актуально
+                 $.post(urlsave, data, function (result) {
+                     if (result == "Ok") {
+                         $("#addrole, .footer").hide();
+                         $("#addrole").load(url).fadeIn(1000);
+                         setTimeout(function () {
+                             $("#saveok").css({ "visibility": "visible" });
+                         }, 1000);
+                         setTimeout(function () {
+                             $("#saveok").css({ "visibility": "hidden" });
+                         }, 3000);
+
+                     }
+                     else {
+                         alert(result);
+                     }
+                 });
+             });
+      
+         //удаление пользователя
+             $("#DeleteUser").click(function () {
+              var url = "@Url.Action("AddRole")";
+              var urldelete = "@Url.Action("DeleteRole")?UserId=" + $("#UList").val();
+              $.post(urldelete, function (result) {
+                  if (result == "Ok") {
+                      $("#addrole, .footer").hide();
+                      $("#addrole").load(url).fadeIn(1000);
+                      setTimeout(function () {
+                          $("#saveok").css({ "visibility": "visible" });
+                      }, 1000);
+                      setTimeout(function () {
+                          $("#saveok").css({ "visibility": "hidden" });
+                      }, 3000);
+                  }
+                  else {
+                      alert(result);
+                      }
+                });
+             });
+
+       //Автозаполнение по подписи
+             $("#Signature").autocomplete({
+                    source: '@Url.Action("AutocompleteSignature")'
+             });
+
+
+
+     });//function
+
+
+
+
+</script>
+}

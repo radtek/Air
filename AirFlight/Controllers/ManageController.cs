@@ -7,6 +7,8 @@ using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin.Security;
 using AirFlight.Models;
+using System.Data.Entity;
+using AirFlight.Filters;
 
 namespace AirFlight.Controllers
 {
@@ -71,10 +73,36 @@ namespace AirFlight.Controllers
                 TwoFactor = await UserManager.GetTwoFactorEnabledAsync(userId),
                 Logins = await UserManager.GetLoginsAsync(userId),
                 BrowserRemembered = await AuthenticationManager.TwoFactorBrowserRememberedAsync(userId)
+                //EmailSend = await UserManager.GetEmailAsync(userId)
             };
-            return View(model);
-        }
 
+            using (ApplicationDbContext dba = new ApplicationDbContext())
+            {
+                string UId = User.Identity.GetUserId();
+                ViewBag.EmailSend = dba.Users.Find(UId).EmailSend;
+            }
+                return View(model);
+        }
+        ////**************************************/////////////////////////////
+         //Сохранение почтового ящика для рассылки
+        public JsonResult SaveEmailSend(string Emil)
+        {
+            using (ApplicationDbContext dba = new ApplicationDbContext())
+            { 
+                string UId = User.Identity.GetUserId();
+                var es = dba.Users.Find(UId);
+                es.EmailSend = Emil;
+
+                if (ModelState.IsValid)
+                {
+                    dba.Entry(es).State = EntityState.Modified;
+                    dba.SaveChanges();
+                    return Json("Ok", JsonRequestBehavior.AllowGet);
+                }
+
+            }
+            return Json("Err", JsonRequestBehavior.AllowGet);
+        }
         //
         // POST: /Manage/RemoveLogin
         [HttpPost]
@@ -231,7 +259,7 @@ namespace AirFlight.Controllers
                 return View(model);
             }
             var result = await UserManager.ChangePasswordAsync(User.Identity.GetUserId(), model.OldPassword, model.NewPassword);
-            if (result.Succeeded)
+            if (result.Succeeded) //для отмены ввода текущего пароля убрать проверку
             {
                 var user = await UserManager.FindByIdAsync(User.Identity.GetUserId());
                 if (user != null)
@@ -244,14 +272,60 @@ namespace AirFlight.Controllers
             return View(model);
         }
 
-        //
+
+        //*********************************Код изменения паролоя******************************///////////////
+        //**********************************************************************************////////////////
+
+        [Log]
+        [HttpGet]
+        [Authorize(Roles = "admin, changepassword")]
+        public ActionResult ChangePasswordAdmin(string UserId)
+        {  using ( ApplicationDbContext dba = new ApplicationDbContext())
+            {
+                ViewBag.UserId = UserId;              
+                var UserName = dba.Users.Find(UserId);
+                ViewBag.UserName = UserName.Surneme + " " + UserName.Name + " " + UserName.LastName;
+                return View();           
+             }
+        }
+
+        [Log]
+        [HttpPost]
+        [Authorize(Roles = "admin, changepassword")]
+        public async Task<ActionResult> ChangePasswordAdmin(ChangePasswordAdmin model)
+        {
+            if (ModelState.IsValid)
+            {
+                //Так как функция AddPasswordAsync не изменяет пароль если он существует, то сначала мы его удалим из базы
+                using (AirFlightContext db = new AirFlightContext())
+                {
+                    var pass = db.AspNetUsers.Find(model.UserId);
+                    pass.PasswordHash = null;
+                    db.Entry(pass).State = EntityState.Modified;
+                    db.SaveChanges();
+                }              
+                //Затем изменим. Если пароль введён согласно правилам (Заглавные буквы и строчные и цифры), то возвращаемся на страницу ролей
+                    var result = await UserManager.AddPasswordAsync(model.UserId, model.NewPassword);
+                    if (result.Succeeded)
+                    {
+                        return RedirectToAction("AddRole", "Admin", new { UserId = model.UserId, Message ="Пароль успешно изменён" });
+                    }
+
+                    AddErrors(result);
+                }
+            // Это сообщение означает наличие ошибки; повторное отображение формы
+            return View(model);
+        }
+
+        //**********************Конец изменения пароля без подтверждения*******************************/////
+
         // GET: /Manage/SetPassword
+        [Log]
         public ActionResult SetPassword()
         {
             return View();
         }
-
-        //
+                
         // POST: /Manage/SetPassword
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -321,6 +395,7 @@ namespace AirFlight.Controllers
             var result = await UserManager.AddLoginAsync(User.Identity.GetUserId(), loginInfo.Login);
             return result.Succeeded ? RedirectToAction("ManageLogins") : RedirectToAction("ManageLogins", new { Message = ManageMessageId.Error });
         }
+         
 
         protected override void Dispose(bool disposing)
         {

@@ -11,6 +11,8 @@ using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
 using AirFlight.Models;
+using System.Net.Mail;
+using System.Net;
 
 namespace AirFlight
 {
@@ -18,10 +20,29 @@ namespace AirFlight
     {
         public Task SendAsync(IdentityMessage message)
         {
-            // Подключите здесь службу электронной почты для отправки сообщения электронной почты.
-            return Task.FromResult(0);
+
+
+            MailAddress from = new MailAddress("fly@nakyn.ru", "Восстановление пароля");
+            MailAddress to = new MailAddress(message.Destination);
+            SmtpClient smtp = new SmtpClient("smtp.mail.ru", 587)           
+            {
+                Credentials = new NetworkCredential("fly@nakyn.ru", "3tlg8XmM"),
+                EnableSsl = true,
+                DeliveryMethod = SmtpDeliveryMethod.Network,               
+                //UseDefaultCredentials = false
+            };
+            MailMessage mail = new MailMessage(from, to)
+            {
+                Subject = message.Subject,
+                Body = message.Body,
+                IsBodyHtml = true
+            };
+            
+            return smtp.SendMailAsync(mail);
+
         }
     }
+    
 
     public class SmsService : IIdentityMessageService
     {
@@ -54,10 +75,10 @@ namespace AirFlight
             manager.PasswordValidator = new PasswordValidator
             {
                 RequiredLength = 6,
-                RequireNonLetterOrDigit = true,
-                RequireDigit = true,
-                RequireLowercase = true,
-                RequireUppercase = true,
+                RequireNonLetterOrDigit = false, //Запрос одного не буквенного или нецифрового символа
+                RequireDigit = true, //Цифры
+                RequireLowercase = true, //Нижний регистр
+                RequireUppercase = true, //верхний регистр
             };
 
             // Настройка параметров блокировки по умолчанию

@@ -1,0 +1,204 @@
+﻿@model IEnumerable<AirFlight.Models.New>
+@using Microsoft.AspNet.Identity;
+
+@{
+    ViewBag.Title = "Новости";
+}
+<div id="News">
+    <h3 style="text-align:center">Добавление новстей в систему регистрации пассажиров</h3>   
+    <table border="0" style="width:100%">
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td style="display:none" rowspan="2">
+                    @{ if (ViewBag.IDI == item.Id)
+                        {
+                        <input style="width:100%; border:none" id="Id" value=@item.Id />
+                        }
+                     else
+                            { @Html.DisplayFor(model => item.Id)}
+                        }
+                    </td>
+                <td rowspan="2" style="width:12%">
+                    <h4 style="color:deepskyblue">@(ViewBag.DateNews = item.Date.ToLongDateString())</h4>
+
+                </td>
+                <td rowspan="1" style="width:75%">
+                    @{ if (ViewBag.IDI == item.Id)
+                        {
+                            <h3><textarea style="width:100%; border:none;max-width:80%" id="Header" rows="1">@item.Header</textarea></h3>
+                        }
+                        else
+                        {
+                            <h3>@item.Header</h3>
+                            
+                        }
+                    }
+                </td>
+
+                @{ if (ViewBag.IDI == item.Id)
+                    {
+                        <td rowspan="2" style="width:15%; text-align:right">
+                            @Html.ActionLink("Сохранить", null,null, new { @class = "SaveEditNews", onclick = "return false" } ) |
+                            @Html.ActionLink("Отменить", null, new {id=0 }, new { @class = "CancelEditNews", onclick = "return false" } )
+                        </td>
+                    }
+                    else
+                    {
+                        <td rowspan="2" style="width:15%; text-align:right ">
+                            @Html.ActionLink("Редактировать",null, new { id=item.Id }, new { @class = "EditNews", onclick = "return false" }) |
+                            @Html.ActionLink("Удалить", "DeleteNews", new { id = item.Id }, new { @class = "DeletelNews", onclick = "return false" })
+                        </td>
+                    }
+                }
+            </tr>
+            <tr>       
+                <td rowspan="1" style="width:75%">
+                    @{ if (ViewBag.IDI == item.Id)
+                        {
+                            <p style="font-size:12pt"><textarea style="width:100%; border:none;max-width:80%" id="Content" rows="5">@item.Content</textarea></p>
+                        }
+                        else
+                        {
+                           <p style="font-size:12pt">@item.Content</p>
+                            @*<p style="font-size:12pt;text-align:justify">@item.Content</p>*@
+                        }
+                    }
+                </td>
+            </tr>
+                        }
+
+        <tr style="height:50px">
+            <td colspan="5" style="visibility:hidden"> <br /></td>
+
+        </tr>
+        <tr style="display:@ViewBag.Create">
+
+            <td rowspan="2" style="width:12%"><h4 id="DateNes">@(ViewBag.DateNewsAdd = DateTime.Now.ToLongDateString()) </h4></td>
+            <td rowspan="1" style="text-align:left"><h3><input style="width:100%; border:none; max-width:80%" id="Header" placeholder="Введите заголовок" tabindex="1"/></h3></td>
+            <td rowspan="2" style="text-align:right">@Html.ActionLink("Сохранить", null, null, new { @class = "SaveNews", @TabIndex = 3 })</td>
+        </tr>
+        <tr style="display:@ViewBag.Create">
+            <td rowspan="1"><p style="font-size:12pt;"><textarea wrap="hard" style="width:100%; border:none; max-width:80%;" id="Content" rows="5" co placeholder="Введите текст новости" tabindex="2"></textarea></p></td>
+        </tr>
+    </table>
+
+    <p style="text-align:right">
+        @{ if (ViewBag.Create == "none")
+            {  @Html.ActionLink("Добавить новость", "News", new { create = 1 }, new { @class = "AddNews", onclick = "return false" })}
+            else
+            { @Html.ActionLink("Отменить", "News", new { create = 0 }, new { @class = "cancelAddNews", onclick = "return false" })}
+        }
+    </p>
+</div>
+
+@*@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}*@
+
+@section scripts
+    {
+    <script type="text/javascript">
+        $(window).ready(function () {
+            $.ajaxSetup({ cache: false });
+            $(".dropdown-toggle").dropdown();
+        });
+
+        $(function () {
+            $(".AddNews").click(function (e) {
+                e.preventDefault;
+                var url = $(this).attr('href');
+                $("#News, .footer").hide();
+                $("#News").load(url).show();
+            });
+
+            $(".cancelAddNews").click(function (e) {
+                e.preventDefault;
+                var url = $(this).attr('href');
+                $("#News, .footer").hide();
+                $("#News").load(url).show();
+            });
+
+            $(".EditNews").click(function (e) {
+                e.preventDefault;
+                var url = $(this).attr('href');
+                $("#News, .footer").hide();
+                $("#News").load(url).show();
+            });
+
+            $(".CancelEditNews").click(function (e) {
+                e.preventDefault;
+                var url = $(this).attr('href');
+                $("#News, .footer").hide();
+                $("#News").load(url).show();
+            });
+
+
+            $(".SaveEditNews").click(function (e) {
+                e.preventDefault;
+                var urlsave = "@Url.Action("SaveEditNews")";
+                var url = "@Url.Action("News", new { id = 0 })";
+                var data = {
+                    Id: $("#Id").val(),
+                    Header: $("#Header").val(),
+                    Content: $("#Content").val(),
+                    Add: "@User.Identity.GetUserId()"
+                }
+                $.post(urlsave, data, function (result) {
+                    if (result == "Ok")
+                    {
+                        $("#News, .footer").hide();                                             
+                        $("#News").load(url).show();                   
+                    }
+                    else {
+                        alert(result);
+                    }
+                });
+            });
+
+            $(".SaveNews").click(function (e) {
+                e.preventDefault;
+                var urlsave = "@Url.Action("SaveNews", new { create = 0 })";
+                var url = "@Url.Action("News")";
+                var data = {
+                    Header: $("#Header").val(),
+                    Content: $("#Content").val(),
+                    Add: "@User.Identity.GetUserId()"
+                }
+                $.post(urlsave, data, function (result) {
+                    if (result == "Ok")
+                    {
+                        $("#News, .footer").hide();
+                        setTimeout(function () { 
+                        $("#News").load(url).show();
+                        }, 500);
+                    }
+                    else {
+                        alert(result);
+                    }
+                });
+            });
+
+            $(".DeletelNews").click(function (e) {
+                e.preventDefault;
+                var urldeleete = $(this).attr('href');               
+                var url = "@Url.Action("News")";
+                $.post(urldeleete, function (result) {
+                    if (result == "Ok")
+                    {
+                        $("#News, .footer").hide();
+                        $("#News").load(url).show();
+                    }
+                    else {
+                        alert(result);
+                    }
+                });
+            });
+
+       
+                        
+        });//function
+   </script>
+}
+
+

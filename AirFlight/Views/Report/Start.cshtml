@@ -1,0 +1,271 @@
+﻿@model IEnumerable<AirFlight.Models.RegistrationList>
+@using Microsoft.AspNet.Identity;
+
+@{
+    ViewBag.Title = "Отчёты";
+}
+<div id="report" style="display:inline-block">  
+     <br />     
+        <div id="datereport">
+            @{Html.RenderPartial("DataReport");}
+        </div>
+       <ul class="nav nav-tabs" role="tablist" id="tabreport" style="text-align:center;margin:auto;width:1200px">
+            <li class="nav-item" style="float:none;display:inline-block"><a class="nav-link" data-toggle="tab" href="#ReportPassenger" role="tab">Отчёт по пассажироперевозкам</a></li>
+        </ul>
+        <div class="tab-content" id="tabs" style="width:1200px;margin:auto">
+            <div class="tab-pane fade" id="ReportPassenger" role="tabpanel">
+    <br />
+    <div class="form-group">
+        @Html.Editor("Surname", new { htmlAttributes = new { @class = "form-control col-md-3", @placeholder = "Введите Фамилию", @style = "max-width:320px;width:100%" } })
+        @Html.Hidden("idfio")
+        <div class="col-md-2 col-md-offset-0">
+            <input type="button" id="addtoreport" class="btn btn-primary btn-sm btn-block btn-success" value="Добавить в отчёт" />
+        </div>
+    </div>
+    <br />
+    <br id="inserttable" />
+    <br />
+    @if (Model.Count() != 0)
+    {
+        <table id="passengertable" align="left" class="table table-hover" style="width:720px;text-align:center;visibility:@ViewBag.ReportVisible">
+            <tr class="grad-grey-table" style="text-align:center">
+                <th style="text-align:center;width:1cm">№</th>
+                <th style="text-align:center;width:3cm">Дата</th>
+                <th style="text-align:center;width:3cm">Время</th>
+                <th style="text-align:center;width:2.5cm">№ рейса</th>
+                <th style="text-align:center;width:3.5cm">От куда</th>
+                <th style="text-align:center;width:3.5cm">Куда</th>
+                <th style="text-align:center;width:4cm">Тип В/С</th>
+            </tr>
+            @foreach (var fio in Model.Select(p => new { p.Passenger.Surname, p.Passenger.Name, p.Passenger.Middlename, p.Passenger.id }).Distinct())
+            {
+                int c = 1;
+                <tr>
+                    <td colspan="7" style="font-size:11pt;padding:1px" class="grad"><b>@fio.Surname @fio.Name @fio.Middlename</b></td>
+                </tr>
+                foreach (var fly in Model.Where(p => p.PassengerID == fio.id))
+                {
+                    <tr>
+                        <td>@(c++).</td>
+                        <td>@fly.Flight.FlightDate.ToShortDateString()</td>
+                        <td>@fly.Flight.FlightTime.ToString().Substring(0, 5)</td>
+                        <td>@fly.Flight.FlightNum</td>
+                        <td>@fly.Flight.Departure</td>
+                        <td>@fly.Flight.Arrival</td>
+                        <td>@fly.Flight.AirType</td>
+                    </tr>
+                }
+                <tr>
+                    <td class="idtoexcel" style="display:none">@Html.DisplayFor(model => fio.id)</td>
+                    <td class="info NoNumber" colspan="7" style="text-align:right;padding:1px;padding-right:1cm; font-size:11pt;"><b>Всего выполнено перелётов: @Model.Where(p => p.PassengerID == fio.id).Count()</b></td>
+                </tr>
+            }
+            <tr>
+                <td colspan="7" style="text-align:right;padding-right:1cm">
+                    <a class="EpmtyTable">Очистить таблицу</a>
+                    <a>|</a>
+                    <a class="ExporExcel">Экспорт в Excel</a>
+                </td>
+            </tr>
+        </table>
+    }
+    else
+    { 
+        <table id="passengertable" align="left" class="table table-hover" style="width:720px;text-align:center;visibility:@ViewBag.ReportVisible">
+            <tr class="grad-grey-table" style="text-align:center">
+                <td>За выбранный период перелётов не найдено</td>
+                <td colspan="7" style="text-align:right;padding-right:1cm; color:darkorange">
+                    <a class="EpmtyTable">Очистить</a>                  
+                </td>
+             </tr>
+         </table>
+     }
+            </div>
+        </div>
+</div>
+
+
+@section scripts
+{
+ <script type="text/javascript">
+    $(window).ready(function () {
+        $.ajaxSetup({ cache: false });
+        $("#ui-datepicker-div").remove();
+        $(".dropdown-toggle").dropdown();
+        $('#tabreport a[href=' + "\"" + $("#TypeReport").val() + "\"]").tab('show');
+        $("#datereport").load("@Url.Action("DateRange")");
+        });
+
+   // $(document).ajaxStart(function () { alert("Старт") })
+
+     $(function () {
+
+         $("html").on("click", "#ViewDateStart", function () {
+             $("#ChoosDate").val(0);
+             $("#StartDate").datepicker({ showOtherMonths: true, selectOtherMonths: true, dateFormat: "yy-mm-dd" }).datepicker("show")
+         });
+
+         $("html").on("click", "#ViewDateEnd", function () {
+             $("#ChoosDate").val(0);
+             $("#EndDate").datepicker({ showOtherMonths: true, selectOtherMonths: true, dateFormat: "yy-mm-dd" }).datepicker("show")
+         });
+
+         $("html").on("click", "#ViewCurrentDate", function () {
+             $("#ChoosDate").val(1);
+             $("#CurrentDate").datepicker({ showOtherMonths: true, selectOtherMonths: true, dateFormat: "yy-mm-dd" }).datepicker("show")
+         });
+
+         //отправка значений в контроллер при изменении даты и получение частичного представления
+         $("html").on("change", "#StartDate, #EndDate, #CurrentDate", function () {
+             var urldate = "@Url.Action("DateRange")?StartDate=" + $("#StartDate").val() + "&EndDate=" + $("#EndDate").val() + "&CurrentDate=" + $("#CurrentDate").val() + "&ChoosDate=" + $("#ChoosDate").val();
+             $("#datereport").load(urldate);
+         });
+
+         $("#Surname").autocomplete({
+             source: '@Url.Action("AutocompleteFIO", "Registration")',
+             //заполняем поля на форме при навелении на запись
+             select: function (event, ui) {
+                 $("#idfio").val(ui.item.id);
+             }
+         });
+
+         //Функция очистки полей
+         function empty() {
+             $("#Surname").val("");
+             $("#idfio").val("");
+         };
+         //Очищаем записи при нажатии кнопки удаления //8-backspace, 46 - del,
+
+         $("#Surname").keyup(function (e) {
+             if ($("#idfio").val().length !== 0) {
+                 if (e.keyCode == 8 || e.keyCode == 46) {
+                     empty();
+                 }
+             }
+         });
+         //добавление пассажира в отчёт
+         $("#addtoreport").click(function () {
+             if ($("#idfio").val().length === 0) {
+                 alert("Выберите пассажира из списка!")
+                 empty();
+                 return false;
+             }
+             if ($('#tabpass:contains(' + $("#idfio").val() + ')').is(':visible')) {
+                 alert("Данный пассажир уже добавлен в список")
+                 empty();
+                 return false;
+             }
+
+             if (!$("#createreport").is(":visible")) {
+                 //Вставляем сначала таблицу
+                 $("#inserttable").after('<table align="left" class="table table-hover table-striped AutoNumberRow" style="width:500px" id="tabpass">' +
+                     '<tr class="grad-grey-table" style="width:1cm"><th style="text-align:center;width:1cm">№</th>' +
+                     '<th style="text-align:left;padding-left:5mm;width:9cm">Фамилия Имя Отчество</th><th style="text-align:left">Действие</th></tr></table>')
+                 //Вставляем строку с пассжиром
+                 $("#tabpass tr:last").after('<tr><td></td><td class="idfio" style="display:none">' + $("#idfio").val() + "</td><td>" +
+                     $("#Surname").val() + '</td><td><a class="deletepass">Удалить</a></td></tr>')
+                 //Добавляем кнопку "Сформировать отчёт"
+                 $("#tabpass tr:last").after('<tr><td colspan="3" class=NoNumber><input type="button" id="createreport" class="btn btn-primary btn-sm btn-block btn-info col-md-offset-2" value="Сформировать отчёт" /></td></tr>')
+             }
+             else {
+                 //если кнопка уже добавлена то добавляем строку перед ней
+                 $("#tabpass tr:last").before('<tr><td></td><td class="idfio" style="display:none">' + $("#idfio").val() + "</td><td>" +
+                     $("#Surname").val() + '</td><td><a class="deletepass">Удалить</a></td></tr>')
+             }
+             empty()
+             $("#passengertable").remove();
+         });
+
+         //удаление пассажира из таблицы
+         $("html").on("click", ".deletepass", function () {
+             if ($("#tabpass tr").length !== 3) {
+                 $(this).parents('tr').remove()
+             }
+             //Если это единственная строка, то удаляем всю страницу
+             else {
+                 $('tr').last().remove();
+                 $(this).parents('table').remove()
+             }
+         });
+
+         //Формируем отчёт
+         $("html").on("click", "#createreport", function () {
+
+             //собираем всех выбранных пассажиров
+             var idfiop = [];
+             $(".idfio").each(function () {
+                 idfiop.push($(this).text());
+             });
+             //idfio : idfio.toString(), в контроллере тогда нужно написать string idfio вместо string[] idfio
+             var data = {
+                 'idfiop[]': idfiop,
+             }
+             $("#passengertable").remove();
+             $("#report").empty();
+             $(".footer").hide();
+             setTimeout(function (){
+                 $("#report").load("@Url.Action("Start")", data)
+         },200);
+        });
+
+         $('.EpmtyTable').click(function () {
+             $("#passengertable").remove();
+         })
+         ////Export в Excel
+         $('.ExporExcel').click(function () {
+             var idexcel = [];
+             $(".idtoexcel").each(function () {
+                 idexcel.push($(this).text());
+             });
+
+             var data = {
+                 StartDate: $("#StartDate").val(),
+                 EndDate: $("#EndDate").val(),
+                 CurrentDate: $("#CurrentDate").val(),
+                 'passlistid[]': idexcel,
+                 ChoosDate: $("#ChoosDate").val()
+             }
+
+             $.post("@Url.Action("ExportExcel")", data, function (data) {
+                 var response = data;
+                 window.location = "@Url.Action("DownloadReport")?fileGuid="+ response.FileGuid+ '&filename=' + response.FileName;
+             });
+
+             @*$.ajax({
+                 type: "POST",
+                 url: "@Url.Action("ExportExcel")",
+                 data: JSON.stringify(data),
+                 contentType: "application/json; charset=utf-8",
+                 dataType: "json",
+                 timeout: 2000
+             })*@
+
+             //var tab_text = "<table border='2px'><tr bgcolor='#87AFC6'>";
+             //var textRange; var j = 0;
+             //tab = document.getElementById('passengertable'); // id of table
+
+             //for (j = 0; j < tab.rows.length; j++) {
+             //    tab_text = tab_text + tab.rows[j].innerHTML + "</tr>";
+             //    //tab_text=tab_text+"</tr>";
+             //}
+
+             //tab_text = tab_text + "</table>";
+             //tab_text = tab_text.replace(/<A[^>]*>|<\/A>/g, "");//remove if u want links in your table
+             //tab_text = tab_text.replace(/<img[^>]*>/gi, ""); // remove if u want images in your table
+             //tab_text = tab_text.replace(/<input[^>]*>|<\/input>/gi, ""); // reomves input params
+
+             //var ua = window.navigator.userAgent;
+             //var msie = ua.indexOf("MSIE ");
+
+
+             //    sa = window.open('data:application/vnd.ms-excel,' + encodeURIComponent(tab_text));
+
+             //return (sa);
+        })
+
+});//function
+
+</script>
+}
+
+

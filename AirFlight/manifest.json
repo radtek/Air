@@ -1,0 +1,9 @@
+﻿{
+  "version": "1.7",
+  "api_version": 3,
+  "layout": {
+    "logo": "http://nakynfly.alrosa.ru/tablo.png",
+    "color": "#1483ee",
+    "show_title": false
+  }  
+}

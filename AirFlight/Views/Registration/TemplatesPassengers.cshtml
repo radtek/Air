@@ -1,0 +1,357 @@
+﻿@model IEnumerable<AirFlight.Models.TemplatesPassenger>
+@{
+    ViewBag.Title = "Шаблоны пассажиров";
+}
+    <div id="Templates">
+    <input type="number" style="display:none" id="NumTab" value="@ViewBag.NumTab" />  
+    <h3 style="text-align:center">Настройка шаблонов регистрации пассажиров</h3>
+    <br />
+    <style>
+        .nav-tabs > li {
+            float: none;
+            display: inline-block;
+        }
+    </style>
+        
+    <ul class="nav nav-tabs" role="tablist" id="tabsday" style="text-align:center;margin:auto;width:1200px">
+        @foreach (var href in ViewBag.NameTabTmpl)
+        {
+            if (href == null)
+            {
+                break;
+            }
+            else
+            { //редактирование имени закладки
+                if (ViewBag.edittmpl == 1 && ViewBag.NumTab == href.Num)
+                {
+                    <li class="nav-item"><p><a data-toggle="tab" class="nav-link" href="#@href.Num" role="tab" onclick="return false"></a><input type="text" size="10" id="DescrTmplName" value="@href.Description" style="border:none;" /></p></li>
+                }
+                else
+                {
+                <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#@href.Num" role="tab">@href.Description</a></li> 
+                }
+            }
+        }
+
+        <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#0" role="tab">Добавить шаблон</a></li>
+        </ul>
+
+        <div class="tab-content" id="tabs" style="width:1200px;margin:auto">
+           
+            <!-- Содержимое TAB панелей -->
+            @foreach (var tmpl in ViewBag.NameTabTmpl)
+            {
+              int count = 1;//счётчик строк
+            <div class="tab-pane fade" id="@tmpl.Num" role="tabpanel">
+               <br />
+                @{if (ViewBag.edittmpl == 1 && ViewBag.NumTab == tmpl.Num)
+                    {//редактирование имени шаблона
+                        <p style="float:right">
+                            @Html.ActionLink("Сохранить", "SaveTmplNamePassenger", new { id = tmpl.Id }, new { @class = "s_TmplNamePass", onclick = "return false" }) |
+                            @Html.ActionLink("Отменить", "TemplatesPassengers", new { edittmpl = 0 }, new { @class = "c_TmplNamePass", onclick = "return false" })
+                           
+                        </p>
+                    }
+                    else
+                    {
+                        <p style="float:right">
+                            @Html.ActionLink("Удалить шаблон", "DelTmplNamePassenger", new { id = tmpl.Id }, new { @class = "d_TmplNamePass", onclick = "return false" }) |
+                            @Html.ActionLink("Изменить имя шаблона", "TemplatesPassengers", new { edittmpl = 1 }, new { @class = "e_TmplNamePass", onclick = "return false" })
+                        </p>
+                    }
+                }
+                <br />
+                <br />
+
+                <table class="table  table-hover" style="text-align:center">
+                    <tr class="grad-grey-table">                       
+                        <th style="text-align:center;width:1cm">№</th>
+                        <th style="text-align:left;width:9cm;padding-left:1.5cm">Фамилия Имя Отчество</th>
+                        <th style="text-align:center;width:3cm">Табельный</th>
+                        <th style="text-align:center;width:4cm">Паспорт</th>
+                        <th style="text-align:center;width:6cm">Цех</th>                                       
+                        <th style="text-align:right;padding-right:20mm">Действия</th>
+                    </tr>
+                  
+                    @foreach (var item in Model.Where(d => d.Num == tmpl.Num))
+                    {
+                              <tr style="text-align:center">
+                                <td style="display:none">@Html.DisplayFor(model => item.Id)</td>
+                                <td>@(count++)</td>
+                                <td style="text-align:left;padding-left:0.5cm">@Html.DisplayFor(modelItem => item.Passenger.Surname) @Html.DisplayFor(modelItem => item.Passenger.Name) @Html.DisplayFor(modelItem => item.Passenger.Middlename)</td>
+                                <td>@Html.DisplayFor(modelItem => item.Passenger.EmployeeNum)</td>
+                                <td>@Html.DisplayFor(modelItem => item.Passenger.Passport)</td>
+                                <td>@Html.DisplayFor(modelItem => item.Passenger.Site)</td>                             
+                                <td style="text-align:right;padding-right:10mm">                                
+                                    @Html.ActionLink("Удалить", "DeleteTemplatesPassenger", new { id = item.Id }, new { @class = "d_TmplPass", onclick = "return false" })
+                                </td>
+                            </tr>
+                        
+                    }
+                    @*Добавляем нового пассажира*@
+                    @if (ViewBag.Create == 1 && ViewBag.NumTab == tmpl.Num)
+                    {
+                        <tr style="height:2px" class="grad">
+                            <td colspan="6"></td>
+                        </tr>
+                            <tr>                              
+                                <td style="display:none">@Html.Hidden("idfio")</td>
+                                <td>@(count++)</td>
+                                <td>@Html.Editor("fio", new { htmlAttributes = new { @class = "form-control" } })</td>
+                                <td>@Html.Editor("EmployeeNum", new { htmlAttributes = new { @class = "form-control" } })</td> 
+                                <td>@Html.Editor("Passport", new { htmlAttributes = new { @class = "form-control" } })</td>   
+                                <td>@Html.Editor("Site", new { htmlAttributes = new { @class = "form-control" } })</td>    
+                                <td style="text-align:right;padding-right:20mm">@Html.ActionLink("Сохранить", "TemplatesPassengers", new { create = 0 }, new { @class = "s_TmplPass" })</td>
+                            </tr>
+                    }
+                                    
+                  
+                </table>
+                <hr />              
+                  <p style="float:right">
+                    @{ if (ViewBag.Create == 1 && ViewBag.NumTab == tmpl.Num)
+                        { @Html.ActionLink("Отменить", "TemplatesPassengers", new { creat = 0 }, new { @class = "c_TmplPass", onclick = "return false" }) }
+                        else
+                        { @Html.ActionLink("Добавить пассажира", "TemplatesPassengers", new { creat = 1 }, new { @class = "a_TmplPass", onclick = "return false" })}                         
+
+                    }
+                </p>
+                <br />
+                <br />               
+            </div>
+           }
+
+        <div class="tab-pane fade" id="0" role="tabpanel">
+            <br />
+            <input style="display:none" id="NumNameTmpl" value="@ViewBag.NameTabNum" />
+            <p>Введите название шаблона:</p> @Html.Editor("DescripTmpl", new { htmlAttributes = new { @class = "form-control" } })
+            <p style="text-align:right;padding-right:10mm">
+                @Html.ActionLink("Добавить шаблон", "AddTmplNamePassenger", null, new { @class = "AddTmplNamePass", onclick = "return false" })
+            </p>
+        </div>
+    </div>
+</div>
+
+
+@section scripts
+    {
+    <script type="text/javascript">
+
+        $(window).ready(function () {
+            $.ajaxSetup({ cache: false });
+            $("#ui-timepicker-div").remove();
+            $(".dropdown-toggle").dropdown();
+            $('#tabsday a[href=' + "\"#" + $("#NumTab").val() + "\"]").tab('show');
+
+        });
+
+        $(function () {
+            //При нажатии на вкладке отправляем её имя в контроллер для дальнейшего корректного отображения вкладки
+            $('#tabsday a').click(function () {
+                $("#NumTab").val($(this).attr('href').replace("#", ''))
+                var data = {
+                    NumTab: $(this).attr('href').replace("#", '')
+                }
+                $.post("@Url.Action("TemplatesPassengers")", data)
+                $(".dropdown-toggle").dropdown();
+        });
+
+
+            //добавляем новый шаблон
+            $(".AddTmplNamePass").click(function (e) {
+                e.preventDefault();
+                if ($("#DescripTmpl").val() === "")
+                { alert("Введите название шаблона!"); return false; }
+                var url = "@Url.Action("TemplatesPassengers")?NumTab=" + $("#NumNameTmpl").val();
+                var urladd = $(this).attr('href');
+                var tmpl = {
+                    Num: $("#NumNameTmpl").val(),
+                    Description: $("#DescripTmpl").val()
+                }
+                $(".footer").hide();
+                $.post(urladd, tmpl, function (result) {
+                    if (result != "Ok") {
+                        alert(result);
+                    }
+                    else {
+                        setTimeout(function () {
+                            $("#Templates").load(url).show()
+                        }, 300)
+                    }
+                });
+            });
+
+            //Удаляем шаблон
+            $(".d_TmplNamePass").click(function (e) {
+            e.preventDefault();
+            var urldelete = $(this).attr('href');
+            var urltmpl = "@Url.Action("TemplatesPassengers")";
+            confirm('Удалить?') ?
+                $.post(urldelete).done(function (result) {
+                    if (result != "Ok") {
+                        alert(result)
+                    }
+                    else {
+                        setTimeout(function () {
+                            $(".footer").hide();
+                            $("#Templates").load(urltmpl)
+                        }, 200)
+                    }
+                }) : false;
+            });
+
+             //Редактирование шаблона (изменить имя)
+            $(".e_TmplNamePass").click(function (e) {
+                e.preventDefault;
+                var url = $(this).attr('href');
+                $(".footer").hide();
+                $("#Templates").load(url);
+            });
+
+            //Отмена редактирования шаблона
+            $(".c_TmplNamePass").click(function (e) {
+                e.preventDefault();
+                var url = $(this).attr('href');
+                $(".footer").hide();
+                $("#Templates").load(url);
+            });
+
+
+            //Сохранение при изменении имени шаблона
+            $(".s_TmplNamePass").click(function (e) {
+                e.preventDefault();
+                if ($("#DescrTmplName").val() === "")
+                { alert("Введите название шаблона!"); return false; }
+                var urltmpl = "@Url.Action("TemplatesPassengers", new { edittmpl=0 })";
+                var urledit = $(this).attr('href');
+                var desr = {
+                    Description: $("#DescrTmplName").val()
+                }
+                $(".footer").hide();
+                $.post(urledit, desr).done(setTimeout(function () {
+                    $("#Templates").load(urltmpl).fadeIn(300)
+                }, 300));
+            });
+
+            //Добавить пассажира в шаблон
+            $(".a_TmplPass").click(function (e) {
+                e.preventDefault();
+                var url = $(this).attr('href');
+                $(".footer").hide();
+                $("#Templates").load(url);
+
+            });
+
+            //Отмена добавления пассажира
+            $(".c_TmplPass").click(function (e) {
+                e.preventDefault();
+                var url = $(this).attr('href');
+                $(".footer").hide();
+                $("#Templates").load(url);
+            });
+
+           //Сохранение при добавлении пассажира
+            $(".s_TmplPass").click(function (e) {
+                e.preventDefault();
+                if ($("#fio").val() == "") { alert("Выберите пассажира!"); return false; }
+                if ($("#idfio").val() == "") {
+                    alert("Данный пассажир отсутствует в базе данных!\n\rДобавьте его через меню:\n\rПассажиры-Регистрация и удаление");
+                    empty(); return false; }
+
+                var urladd = "@Url.Action("AddTemplatesPassenger")";
+                var urltmpl = $(this).attr('href');
+                var tmpl = {
+                    Num: $("#NumTab").val(),                  
+                    PassengerID: $("#idfio").val()                    
+                }
+                $(".footer").hide();
+                $.post(urladd, tmpl, function (result) {
+                    if (result != "Ok") {
+                        alert(result);
+                    }
+                    else {
+                        setTimeout(function () {
+                            $("#Templates").load(urltmpl)
+                        }, 300)
+                    }
+                });
+            });
+
+            //удаление пассажира
+            $(".d_TmplPass").click(function (e) {
+                e.preventDefault();
+                var urldelete = $(this).attr('href');
+                var urltmpl = "@Url.Action("TemplatesPassengers")";
+                confirm('Удалить?') ?
+                    $.post(urldelete).done(setTimeout(function () {
+                        $(".footer").hide();
+                        $("#Templates").load(urltmpl).fadeIn(300)
+                    }, 300)) : false;
+            });
+
+ //автозаполнение по фамилии
+            $("#fio").autocomplete({
+                source: '@Url.Action("AutocompleteFIO")',
+                //заполняем поля на форме при навелении на запись
+                focus: function (event, ui) {
+                    $("#EmployeeNum").val(ui.item.EmployeeNum);
+                    $("#Passport").val(ui.item.Passport);
+                    $("#Site").val(ui.item.Site);
+                },
+                select: function (event, ui) {
+                    $("#idfio").val(ui.item.id);
+                }
+             });
+
+        //Поиск по табельному номеру
+             $("#EmployeeNum").autocomplete({
+                 source: '@Url.Action("AutocompleteEmplNum")',
+                  //заполняем поля на форме при навелении на запись
+                focus: function (event, ui) {
+                    $("#fio").val(ui.item.fio);
+                    $("#Passport").val(ui.item.Passport);
+                    $("#Site").val(ui.item.Site);
+                 },
+                select: function (event, ui) {
+                    $("#idfio").val(ui.item.id);
+                }
+             });
+
+        //Поиск по паспорту
+             $("#Passport").autocomplete({
+                 source: '@Url.Action("AutocompletePassport")',
+                  //заполняем поля на форме при навелении на запись
+                focus: function (event, ui) {
+                    $("#fio").val(ui.item.fio);
+                    $("#EmployeeNum").val(ui.item.EmployeeNum);
+                    $("#Site").val(ui.item.Site);
+                 },
+                select: function (event, ui) {
+                    $("#idfio").val(ui.item.id);
+                }
+             });
+
+
+            //Очищаем записи при нажатии кнопки удаления //8-backspace, 46 - del,
+             $(document).keyup(function (e) {
+                 if (e.keyCode == 8 || e.keyCode == 46) {
+                     empty();             
+                     $("#fio").val("");
+                     }                 
+            });
+
+            //Функция очистки полей
+            function empty() {
+                $("#EmployeeNum").val("")
+                $("#Passport").val("")
+                $("#idfio").val("")
+                $("#fio").val("")
+                $("#Site").val("")
+            };
+
+
+
+        });//function
+
+</script>
+}

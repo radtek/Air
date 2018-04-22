@@ -12,6 +12,7 @@ namespace AirFlight.Models
         public string PhoneNumber { get; set; }
         public bool TwoFactor { get; set; }
         public bool BrowserRemembered { get; set; }
+       
     }
 
     public class ManageLoginsViewModel
@@ -41,7 +42,7 @@ namespace AirFlight.Models
 
     public class ChangePasswordViewModel
     {
-        [Required]
+       [Required]
         [DataType(DataType.Password)]
         [Display(Name = "Текущий пароль")]
         public string OldPassword { get; set; }
@@ -50,6 +51,24 @@ namespace AirFlight.Models
         [StringLength(100, ErrorMessage = "Значение {0} должно содержать символов не менее: {2}.", MinimumLength = 6)]
         [DataType(DataType.Password)]
         [Display(Name = "Новый пароль")]
+        public string NewPassword { get; set; }
+
+        [DataType(DataType.Password)]
+        [Display(Name = "Подтверждение нового пароля")]
+        [Compare("NewPassword", ErrorMessage = "Новый пароль и его подтверждение не совпадают.")]
+        public string ConfirmPassword { get; set; }
+    }
+
+    public class ChangePasswordAdmin
+    {
+               
+        [Display(Name = "UserId")]
+        public string UserId { get; set; }
+
+        [Required]    
+        [StringLength(100, ErrorMessage = "Значение {0} должно содержать символов не менее: {2}.", MinimumLength = 6)]
+        [DataType(DataType.Password)]
+        [Display(Name = "Новый пароль.")]
         public string NewPassword { get; set; }
 
         [DataType(DataType.Password)]

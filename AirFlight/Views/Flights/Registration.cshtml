@@ -1,0 +1,874 @@
+﻿@model IEnumerable<AirFlight.Models.RegistrationList>
+@using AirFlight.Models
+@using Microsoft.AspNet.Identity;
+@{    
+    ViewBag.Title = "Регистрация пассажиров";
+}
+
+@*Так как AJAX напрямую не хочет отправлять значения переменных типа ViewBag.Departure то пришлось сделать их скрытыми*@
+<div id="reg">
+    <input style="display:none" id="DP" value="@ViewBag.Departure" />
+    <input style="display:none" id="AR" value="@ViewBag.Arrival" />
+    <input style="display:none" id="all" value="@ViewBag.All">   
+    <input style="display:none" id="user" value="@User.Identity.GetUserId()"> 
+    @{switch (@ViewBag.FD.ToString("dddd"))
+        {
+            case "понедельник":
+                ViewBag.Day = "в понедельник";
+                break;
+            case "вторник":
+                ViewBag.Day = "во вторник";
+                break;
+            case "среда":
+                ViewBag.Day = "в среду";
+                break;
+            case "четверг":
+                ViewBag.Day = "в четверг";
+                break;
+            case "пятница":
+                ViewBag.Day = "в пятницу";
+                break;
+            case "суббота":
+                ViewBag.Day = "в субботу";
+                break;
+            case "воскресенье":
+                ViewBag.Day = "в воскресенье";
+                break;
+        }
+     }
+        <h3 style="text-align:center">Регистрация пассажиров вылетающих @ViewBag.Day, @ViewBag.FlightDate</h3>
+        <h3 style="text-align:center">По маршруту @ViewBag.Departure - @ViewBag.Arrival </h3>   
+    @{
+        foreach (Flight FlyInfo in ViewBag.FlightInfo)
+        {
+            var Registration = Model.Where(r => r.FlightID == FlyInfo.id).ToList();
+            int count = 1;
+            ViewBag.FlyTime = FlyInfo.FlightTime.ToString().Substring(0, 5); //время вылета (обрезаем 3 последних знака - секунды)
+            ViewBag.AirType = FlyInfo.AirType;
+            ViewBag.IDFL = FlyInfo.id;
+            ViewBag.Approved = FlyInfo.Approved;
+            ViewBag.FlightNum = FlyInfo.FlightNum;
+            ViewBag.FlDate = FlyInfo.FlightDate;
+            ViewBag.SendSms = FlyInfo.SendingSms;
+            //количество мест для регистрации
+            ViewBag.Total = FlyInfo.Number - Registration.Count();
+            ViewBag.qt = Registration.Count() - FlyInfo.Number;
+
+        <h3 style="text-align:center; color:burlywood; display:@((ViewBag.Approved== "Открыта"||ViewBag.Approved== "Ограничена") ? "none" : "normal")">Внимание! Регистрация @ViewBag.Approved.ToLower()</h3>
+            <h3 style="text-align:center; color:@(ViewBag.Total<=0?"burlywood":"darkblue"); display:@(ViewBag.Approved== "Открыта" || ViewBag.Approved== "Ограничена"?"normal" :"none" )">@(FlyInfo.Number < Registration.Count() ? "Зарегистрировано на " + ViewBag.qt + " пассажира больше установленного. Всего:" + FlyInfo.Number : "Доступно мест для регистрации:" + ViewBag.Total)</h3>
+            <h3 style="text-align:center" class="list-inline">Рейс № <ins class="flynum" id="flynum">@ViewBag.FlightNum</ins>@Html.DropDownList("flynumed", ViewBag.FlightNumbers as SelectList, htmlAttributes: new { @style = "width:30pt; display:none; border:none", @class = "flynumed" }) Время вылета @ViewBag.FlyTime. Тип воздушного судна: @ViewBag.AirType  </h3>
+
+            <table class="table  table-hover table-striped" style="text-align:center">
+                <tr class="grad-grey-table">
+                    <th style="text-align:center;width:1cm">№</th>
+                    <th style="text-align:left;padding-left:1cm;width:10cm">Фамилия Имя Отчество</th>
+                    <th style="text-align:center;width:3cm">Табельный</th>
+                    @if (ViewBag.Edit == 0)
+                    {
+                        <th style="text-align:center;width:4cm">Паспорт</th>}
+                    else
+                    {
+                        <th style="text-align:center;width:4cm">№ рейса</th>
+                    }
+                    <th style="text-align:center;text-align:center; width:4cm; padding-left:0.5cm">Цех</th>
+                    @if (ViewBag.Approved == "Закрыта" || ViewBag.Approved == "В архиве")
+                    { <th style="text-align:center;width:1cm;cursor:help"><img class="sms-info" src="~/Image/sms-info.png" /></th> }
+                    else
+                    { <th></th> } 
+                    <th style="text-align:center;padding-left:3cm">Примечание</th>
+                    <th style="text-align:right;padding-right:1cm;width:6cm">Действие</th>
+                </tr>
+
+                @foreach (var item in Registration)
+                {
+                    <tr style="text-align:center">
+                        <td>@(count++)</td>
+                        <td style="display:none">
+                            @{ if (ViewBag.IDI == item.id)
+                            {  @Html.EditorFor(model => item.id) }
+                            else
+                            {  @Html.DisplayFor(model => item.id)}
+                            }
+                        </td>
+                        <td style="text-align:left">
+                            <img class="InfoPassenger" src="~/Image/i.png" style="cursor:help" /> @Html.DisplayFor(modelItem => item.Passenger.Surname) @Html.DisplayFor(modelItem => item.Passenger.Name) @Html.DisplayFor(modelItem => item.Passenger.Middlename)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.Passenger.EmployeeNum)
+                        </td>
+                        <td>
+                            @{ if (ViewBag.Edit == 0)
+                                {
+                                   @Html.DisplayFor(modelItem => item.Passenger.Passport) 
+                                }
+                                else
+                                  if (ViewBag.IDI == item.id)
+                                    {
+                                        @Html.DropDownList("flightnump", ViewBag.FlightNumbers as SelectList, htmlAttributes: new { @class = "form-control" })
+                                    }
+                                    else
+                                    {
+                                    @Html.DisplayFor(modelItem => item.Flight.FlightNum)
+                                    }
+                            }
+                        </td>
+                        <td style="text-align:center">
+                            @Html.DisplayName(item.Passenger.Site)
+                        </td>
+                       @if (ViewBag.Approved == "Закрыта" || ViewBag.Approved == "В архиве")
+                       {
+                           if (ViewBag.SendSms == null)
+                           {
+                               if (ViewBag.FlDate <= DateTime.Now.Date)
+                               {
+                                <td style="text-align:center;width:1cm"><img style="cursor:help" class="sms-notsend" src="~/Image/sms-notsend.png" ) /></td>
+                               }
+                               else
+                               {
+                                <td style="text-align:center;width:1cm"><img style="cursor:help" class="sms-wait" src="~/Image/sms-wait.png" ) /></td>
+                               }
+                           }
+                           else
+                           {
+                               if (item.SendingSms == true)
+                               {
+                                <td style="text-align:center;width:1cm"><img style="cursor:help" class="sms-send" src="~/Image/sms-send.png" /></td>
+                               }
+                               else
+                               {
+                                <td style="text-align:center;width:1cm"><img style="cursor:help" class="sms-notsend" src="~/Image/sms-notsend.png" /></td>
+                               }
+                           }
+                       }//конец if Закрыта
+                       else
+                       {
+                           <th style="text-align:center;width:1cm"></th> 
+                       }
+                        <td>
+                            @if (@ViewBag.IDI == item.id)
+                            {
+                                @Html.EditorFor(modelItem => item.Note, new { htmlAttributes = new { @class = "form-control", @id = "NoteEdit" } }) 
+                            }
+                            else
+                            {
+                                @Html.DisplayFor(modelItem => item.Note)
+                            }
+                        </td>
+                       @if (ViewBag.Approved == "В архиве")
+                       {
+                        <td style="text-align:right">
+                            <a style="color:darkgrey" class="noedit">Изменить</a> |
+                            <a style="color:darkgrey" class="noedit">Удалить</a>
+                        </td>
+                       }
+                       else
+                       {
+                           if (ViewBag.IDI == item.id)
+                           {
+                        <td style="text-align:right">
+                            @Html.ActionLink("Сохранить", "Registration", new { edit = 0, FlightID = item.FlightID, all = ViewBag.All }, new { @class = "save" }) |
+                            @Html.ActionLink("Отменить", "Registration", new { edit = 0, FlightID = item.FlightID, all = ViewBag.All }, new { @class = "cancel" })
+                        </td>
+                        }
+                        else
+                        {
+                        <td style="text-align:right">
+                            @Html.ActionLink("Изменить", "Registration", new { edit = 1, idi = item.id, FlightID = item.FlightID, all = ViewBag.All }, new { @class = "edititem" }) |
+                            @Html.ActionLink("Удалить", "Delete", new { id = item.id, FlightID = item.FlightID, all = ViewBag.All }, new { @class = "delete" })
+                        </td>
+                        }
+                      }
+
+                    </tr>
+                    }
+                @*Добавляем нового пассажира*@
+
+                @if (ViewBag.AddPassenger == 1 && ViewBag.IDFL == ViewBag.ID)
+                {
+                    <tr style="background-color:moccasin">
+                        <td colspan="8"></td>
+                    </tr>
+                    <tr>
+                        <td>@(count++)</td>
+                        <td style="display:none">@Html.Editor("idfl", new { value = @ViewBag.IDFL })</td>
+                        <td>
+                            @Html.Editor("fio", new { htmlAttributes = new { @class = "form-control", placeholder = "Введите фамилию" } })
+                            @Html.Hidden("idfio")
+                        </td>
+                        <td style="width:4cm">@Html.Editor("EmployeeNum", new { htmlAttributes = new { @class = "form-control" } })</td>
+                        <td style="width:4cm"> @Html.Editor("Passport", new { htmlAttributes = new { @class = "form-control" } })</td>
+                        <td></td>
+                        <td colspan="2">@Html.Editor("Note", new { htmlAttributes = new { @class = "form-control" } })</td>
+                        <td style="text-align:right;padding-right:0.9cm">
+                            @Html.ActionLink("Сохранить", "Registration", new { FlightID = ViewBag.IDFL, AddPassenger = 0, all = ViewBag.All }, new { @class = "saveadd" })
+                        </td>
+                    </tr>
+                }
+
+                @if (ViewBag.createtmpl == 1 && ViewBag.IDFL == ViewBag.ID)
+                {
+                    <tr style="background-color:moccasin">
+                        <td colspan="8"></td>
+                    </tr>
+                    <tr class="grad-grey-table">
+                        <td style="display:none">@Html.Editor("idfl", new { value = ViewBag.IDFL })</td>
+                        <th style="text-align:center">№</th>
+                        <th colspan="1" style="text-align:left;padding-left:2cm;width:10cm">Шаблон</th>
+                        <th colspan="5" style="text-align:center"></th>
+                        <th style="text-align:right;padding-right:1cm;width:5cm">Действия</th>
+                    </tr>
+                    <tr>
+                        <td>@(count++)</td>
+                        <td colspan="1">@Html.DropDownList("TListPass", ViewBag.TmplListPass as SelectList, new { @class = "form-control", @style = "max-width:220px;width:100%" })</td>
+                        <td colspan="5" style="text-align:left"><input type="checkbox" id="addhendpass" /> Выбрать пассажиров из шаблона вручную</td>
+                        <td style="text-align:right;padding-right:0.9cm">@Html.ActionLink("Сохранить", "Registration", new { FlightID = ViewBag.IDFL, createtmpl = 0, all = ViewBag.All }, new { @class = "saveaddtmpl", onclick = "return false" })</td>
+                    </tr>
+                }
+            </table>
+
+            <p style="float:left">@Html.ActionLink("Вернуться к выбору рейсов", "FlightsList")</p>
+            <p style="float:right">
+                @{
+                    if (ViewBag.Approved == "В архиве")
+                    { }
+                    else
+                    {
+                        if (ViewBag.AddPassenger == 0 && ViewBag.createtmpl == 0)
+                        {
+                        @Html.ActionLink("Добавить пассажиров по шаблону", "Registration", new { createtmpl = 1, FlightID = ViewBag.IDFL, all = ViewBag.All }, new { @class = "addpasstmpl", onclick = "return false" })
+                        <a>|</a>
+                        @Html.ActionLink("Добавить пассажира", "Registration", new { AddPassenger = 1, FlightID = ViewBag.IDFL, all = ViewBag.All }, new { @class = "Add" })
+                        }
+                        else
+                        {
+                        @Html.ActionLink("Отменить", "Registration", new { AddPassenger = "0", FlightID = ViewBag.IDFL, all = ViewBag.All }, new { @class = "canceladd" })
+                            }
+                        }
+                    }
+             </p>
+            <br />
+        }
+    }
+</div>
+
+
+@section scripts
+    {
+    <script type="text/javascript">
+
+        $(window).ready(function () {
+              //запрещаем браузеру кэшировать данные AJAX
+            $.ajaxSetup({ cache: false });
+            //Для того что бы активировать DropDown menu обновляем его
+            $(".dropdown-toggle").dropdown();
+        });
+
+        //Ссылка добавить пассажира
+        $(function () {
+
+            $(".Add").click(function (e) {
+                e.preventDefault();
+                $(".footer").hide();
+                var url = $(this).attr('href');
+                $("#reg").load(url);
+            })
+
+       //отмена добавления
+            $(".canceladd").click(function (e) {
+                e.preventDefault();
+                $(".footer").hide();
+                var url = $(this).attr('href');
+                $("#reg").load(url);
+            })
+
+            //***Добавление пассажира по шаблону****////
+            //Добавляем пассажира
+            $(".addpasstmpl").click(function (e) {
+                e.preventDefault();
+                var url = $(this).attr('href');
+                $(".footer").hide();
+                $("#reg").load(url);
+                //прокручиваем страницу вниз при добавлении нового рейса
+                var height = $("body").height();
+                $('html, body').animate({ scrollTop: height });
+
+            });
+
+        //Сохранение при добавлени нового пассажира
+            $(".saveadd").click(function (e) {
+                e.preventDefault();
+                if ($("#fio").val() == "") {
+                    alert("Выберите пассажира!");
+                    return false;
+                }
+                if ($("#idfio").val() == "") {
+                    alert("Данный пассажир отсутствует в базе данных!\n\rДобавьте его через меню:\n\rПассажиры-Регистрация и удаление");
+                    empty();
+                    return false;
+                }
+                else {
+                    var urlcreate = "@Url.Action("Create")";
+                    var urlreg = $(this).attr('href');
+                    var urlcreateconfirm = "@Url.Action("Create", new { confirm="yes" })"
+                    var reglist = {
+                        CreatorID: $("#user").val(),
+                        EditorID: $("#user").val(),
+                        NightShift: "False",
+                        Note: $("#Note").val(),
+                        FlightID: $("#idfl").val(),
+                        PassengerID: $("#idfio").val()
+                    };
+                    $(".footer").hide();
+                    $.post(urlcreate, reglist, function (result) {
+                        //если вернулся ответ не Ok то смотрим есть ли в строке ответа знак ?. Если он есть то сообщаем, что данные пассажир есть на встречном рейсе и спрашиваем
+                        //добавить его или нет.
+                        if (result != "Ok") {
+                            if (result.indexOf('?') !== -1) {
+                                //Если выбрали да, то сохраняем его на рейс и обновляем страницу
+                                confirm(result) ? $.post(urlcreateconfirm, reglist).done(setTimeout(function () {
+                                    $("#reg").load(urlreg).fadeIn(500)
+                                    //если выбрали нет, то очищаем поля
+                                }, 500)) : empty();
+                            }
+                            else {
+                                alert(result);
+                                empty();
+                            }
+                        }
+                        else {
+                            setTimeout(function () {
+                                $("#reg").load(urlreg).fadeIn(500)
+                            }, 500);
+                        }
+                    });
+                }
+            });
+
+     //*********************Сохранение при добавлении по шаблону******************************/////
+            $(".saveaddtmpl").click(function (e) {
+                e.preventDefault();
+                //если шаблон не выбран
+                if ($("#TListPass").val() === "0")
+                {
+                    $.alert({
+                        animation: 'zoom',
+                        animationBounce: 2.5,
+                        type: 'red',
+                        theme: 'dark',
+                        title: "Ошибка!",
+                        content: "Выберите шаблон для добавления!"
+                    });
+                    return false;
+                }
+                var urlregistration = $(this).attr('href');
+                var data = {
+                    Tmplnum: $("#TListPass").val(),
+                    FlightID: $("#idfl").val(),
+                    confirm: $("#addhendpass").is(":checked")?"Yes":"No"
+                };
+                //отпрвка выбранного шаблона
+                $.post("@Url.Action("AddTmplPass")", data, function (result) {
+                    if (result.status !== "Ok") {
+                        //если в шаблоне нет пользователей
+                        if (result.status === "ErrNoItem")
+                        {
+                            $.alert({
+                                animation: 'top',
+                                closeAnimation: 'news',
+                                type: 'red',
+                                theme: 'dark',
+                                columnClass: 'small',
+                                title: "Ошибка!",
+                                content: result.msg
+                            });
+                            return false;
+                        }
+                        //если есть пассажиры на других или встречных рейсах, то добавляем в список тех кого нет и выводим сообщение о тех кого не добавили
+                        //при условии что нам хватило мест для регистрации
+                        if (result.status === "ErrAdd") {
+                            $.alert({
+                                type: 'orange',
+                                theme: 'dark',
+                                columnClass: 'medium',
+                                title: "Внимание!",
+                                content: function () {
+                                    var passenger = "";
+                                    if (result.ExistPassenger.length > 0) {
+                                        passenger += "<h5>Следующие пассажиры не были добавлены, так как они уже зарегистрированы на рейсах:</h5>";
+                                        for (var i = 0; i < result.ExistPassenger.length; i++) {
+                                            passenger += "<li>" + (i + 1) + ". " + result.ExistPassenger[i] + "</li>"
+                                        }
+                                    }
+                                    return passenger;
+                                }//-->content
+                            });//-->alert
+                        }//-->if (result.status === "ErrAdd")
+                        //если мест для регистрации меньше количества пассажиров в шаблоне и мы запросили добавление вручную
+                        if (result.status === "ConfirmAddLis") {
+                            ConfirmYes(result, urlregistration);
+                            return false;
+                        }
+                        if (result.status === "ConfirmAdd") {
+                            $.confirm({
+                                type: 'orange',
+                                theme: 'dark',
+                                columnClass: 'small',
+                                title: "Внимание!",
+                                content: "<h5>" + result.msg+ "</h5>",
+                                buttons: {
+                                    //если подтвердили, что хотим добавить вручную
+                                    Выбрать: {
+                                        text: "Выбрать из списка",
+                                        action: function () {
+                                     var data = {
+                                            Tmplnum: $("#TListPass").val(),
+                                            FlightID: $("#idfl").val(),
+                                            confirm:"Yes"
+                                            };
+                                     //отправляем в контроллер шаблон и факт того что мы хотим добавить пассажиров вручную
+                                     $.post("@Url.Action("AddTmplPass")", data, function (result) {
+                                         //если нам вернулся список с пассажирами
+                                         if (result.status === "ConfirmAddLis") {
+                                             ConfirmYes(result, urlregistration);
+                                         }//--> if (result.status === "ConfirmAddLis")
+                                     })//-->post
+                                        }//-->action
+                                    },
+                                    Всех: {
+                                        text: "Добавить всех",
+                                        action: function () {
+                                            var data = {
+                                                Tmplnum: $("#TListPass").val(),
+                                                FlightID: $("#idfl").val(),
+                                                confirm: "Add"
+                                            };
+                                            $.post("@Url.Action("AddTmplPass")", data, function (result) {
+                                                if (result.status === "ErrAdd") {
+                                                    $.alert({
+                                                        type: 'orange',
+                                                        theme: 'dark',
+                                                        columnClass: 'medium',
+                                                        title: "Внимание!",
+                                                        content: function () {
+                                                            var passenger = "";
+                                                            if (result.ExistPassenger.length > 0) {
+                                                                passenger += "<h5>Следующие пассажиры не были добавлены, так как они уже зарегистрированы на рейсах:</h5>";
+                                                                for (var i = 0; i < result.ExistPassenger.length; i++) {
+                                                                    passenger += "<li>" + (i + 1) + ". " + result.ExistPassenger[i] + "</li>"
+                                                                }
+                                                            }
+                                                            return passenger;
+                                                        }//-->content
+                                                    });//-->alert
+                                                }//-->if (result.status === "ErrAdd")
+
+                                                setTimeout(function () {
+                                                    $(".footer").hide();
+                                                    $("#reg").load(urlregistration);
+                                                }, 300);
+                                            });
+                                        }
+                                    },
+                                    Нет: {
+                                        action: function () {
+                                            setTimeout(function () {
+                                                $(".footer").hide();
+                                                $("#reg").load(urlregistration);
+                                            }, 300);
+                                        }
+                                    }
+                                }//-->buttons
+                            });//--> $.confirm
+                            return false;
+                        }//--> if (result.status === "ConfirmAdd")
+                        //если мы выбрали добавлять по шаблону вручную, а все пассажиры из шаблона уже добавлены
+                        if (result.status === "NoConfirmAddLis") {
+                            $.alert({
+                                type: 'blue',
+                                theme: 'dark',
+                                columnClass: 'medium',
+                                title: "Внимание!",
+                                content: function () {
+                                    var passenger = "";
+                                    if (result.ConfirmPassengerList.length > 0) {
+                                        passenger += "<h5>В данном шаблоне все пассажиры уже добавлены на следующие рейсы:</h5>";
+                                        for (var i = 0; i < result.ConfirmPassengerList.length; i++) {
+                                            passenger += "<li>" + (i + 1) + ". " + result.ConfirmPassengerList[i] + "</li>"
+                                        }
+                                    }
+                                    return passenger;
+                                }//-->content
+                            });//-->alert
+                        }//-->if (result.status === "NoConfirmAddLis")
+                         // return false; //-не перегружать страницу
+                    }  //-->if (result.status !== "Ok")
+                        setTimeout(function () {
+                            $(".footer").hide();
+                            $("#reg").load(urlregistration);
+                        }, 500);
+                });
+            });//-->$(".saveaddtmpl").click(function (e)
+
+            //функция ручного добавления пассажиров
+            function ConfirmYes(result, urlregistration) {
+               $.confirm({
+                type: 'blue',
+                theme: 'dark',
+                columnClass: 'medium',
+                title: "Отметьте пассажиров для добавления:",
+                content: function () {
+                    var listpassenger = "<div style='display:inline-block'><input id='checkall' type='checkbox' /> Выбрать всех (отменить выбор всех). Всего выбрано: " +
+                        "<h5 style='display:inline-block' id='checking'>0</h5> <h5 style= 'display:inline-block'>Сверх нормы:</h5> <h5 style= 'display:inline-block' id='limitadd'>0</h5 ></div> "
+                    for (var i = 0; i < result.ConfirmPassenger.length; i++) {
+                        //если в списке есть уже добавленные пассажиры, то скрываем checkbox
+                        if (result.AllowCheckPassenger[i] == false)  {
+                            listpassenger += "<li>" + (i + 1) + ". <input type='checkbox'  style='visibility: hidden'/>"  + result.ConfirmPassenger[i] + "</li>"
+                        }
+                        //если пассажира нет на рейсах за текущюю дату, то отображаем chekbox
+                        else {
+                            listpassenger += "<li>" + (i + 1) + ". <input class='selectedPass' type='checkbox'  name='selectedRoles'  value='" + result.ConfirmPassengerId[i] + "'/> " + result.ConfirmPassenger[i]+ "</li>"
+                        }
+                    }
+                    return listpassenger;
+                },
+                //действия при нажатии кнопок
+                buttons: {
+                    Сохранить: {
+                        action: function () {
+                            //выбираем все отмеченные checkbox
+                            var addpass = [];
+                            $(".selectedPass:checkbox:checked").each(function () {
+                                addpass.push($(this).val());
+                            });
+                            //если ничего не отметили, выводим ошибку
+                            if (addpass.length === 0) {
+                                $.alert({
+                                    type: 'orange',
+                                    theme: 'dark',
+                                    columnClass: 'small',
+                                    title: "Внимание!",
+                                    content:"Вы не выбрали ни одного пассажира!"
+                                });
+                                return false;
+                            }
+                            //если всё нормально, то возвращаем в контроллер список добавляемых пассажиров
+                             var data = {
+                                FlightID: $("#idfl").val(),
+                                confirm: "SaveCheckPass",
+                                'selectPass[]': addpass
+                             };
+                            //отпрвка выбранного шаблона
+                            $.post("@Url.Action("AddTmplPass")", data, function () {
+                                setTimeout(function () {
+                                    $(".footer").hide();
+                                    $("#reg").load(urlregistration);
+                                }, 300);
+                            });
+                           }//-->action Сохранить
+                       },
+                    Отменить: { }
+                },//-->buttons
+                //при выборе отметить всех отмечаем всех пассажиров
+                onContentReady: function () {
+                    var limitadd = 0;
+                    $("#checkall").change(function () {
+                        if ($("#checkall").is(":checked")) {
+                            $(".selectedPass").prop("checked", true)
+                            var pass = [];
+                            $(".selectedPass:checkbox:checked").each(function () {
+                                pass.push($(this).val());
+                            });
+                            $("#checking").text(pass.length)
+                            limitadd = pass.length - result.Count
+                            limitadd <= 0 ? $("#limitadd").text("0") : $("#limitadd").text(limitadd);                           
+                        }
+                        else {
+                            $(".selectedPass").prop("checked", false)
+                            var pass = [];
+                            $(".selectedPass:checkbox:checked").each(function () {
+                                pass.push($(this).val());
+                            });
+                            $("#checking").text(pass.length)
+                            limitadd = pass.length - result.Count
+                            limitadd <= 0 ? $("#limitadd").text("0") : $("#limitadd").text(limitadd); 
+                        }
+                    });
+                    $(".selectedPass").change(function () {
+                        var pass = [];
+                        $(".selectedPass:checkbox:checked").each(function () {
+                            pass.push($(this).val());
+                        });
+                        $("#checking").text(pass.length);
+                        limitadd = pass.length - result.Count
+                        limitadd <= 0 ? $("#limitadd").text("0") : $("#limitadd").text(limitadd); 
+                    })
+                  },
+              });//--> $.confirm
+            }//-->function ConfirmYes
+
+            ///////////////////************************Конец сохранения при добавлении по шаблону****************//////////////
+        //Функция очистки полей
+            function empty() {
+                $("#EmployeeNum").val("");
+                $("#Passport").val("");
+                $("#idfio").val("");
+                $("#fio").val("");
+                $("#Note").val("");
+            };
+
+        //Изменить пассажира
+            $(".edititem").click(function (e) {
+                //Отменяем действие ActionLink
+                e.preventDefault();
+                var url = $(this).attr('href');
+                //Скрываем футер, так как при загрузке данных он отобразиться снова
+                $(".footer").hide();
+                //получаем данные с сервера
+                $("#reg").load(url);
+             });
+
+        //Отмена изменения
+            $(".cancel").click(function (e) {
+                e.preventDefault();
+                var url = $(this).attr('href');
+                $(".footer").hide();
+                $("#reg").load(url);
+            });
+
+        //Сохранение при редактировании
+                $(".save").click(function (e) {
+                    e.preventDefault();
+                    var urlsave = "@Url.Action("Edit")";
+                    var urlreg = $(this).attr('href');
+                    var t = $("#flightnump").val();
+                    var editreglist = {
+                        id: $("#item_id").val(),
+                        EditorID: $("#user").val(),
+                        Note: $("#NoteEdit").val(),
+                        FlightID: $("#flightnump").val()
+                    };
+                    $.post(urlsave, editreglist).done(setTimeout(function () {
+                        $("#reg").load(urlreg).fadeIn(500)
+                    }, 500));
+
+              });
+
+        //Удаление пассажира
+                $(".delete").click(function (e) {
+                    e.preventDefault();
+                    var url = $(this).attr('href');
+                    confirm('Удалить?') ?
+                        $.post(url, function (result) {
+                            $(".footer").hide();
+                            setTimeout(function () {
+                                $("#reg").load(result);
+                            }, 300);
+                        }) : false;
+                   });
+
+        //Автозаполнение при поиске по фамилии. Определяем ID выбранного элемента из списка при изменении фокуса (idfio)
+        //и сразу заполняем поля табельный номер и паспорт (свойство focus)
+        //Можно использовать свойства select, тогда поля будут заполняться при выборе https://metanit.com/web/jquery/8.6.php
+        //idfio заполняем только при выделении мышкой
+            $("#fio").autocomplete({
+                source: '@Url.Action("AutocompleteFIO")',
+                //заполняем поля на форме при навелении на запись
+                focus: function (event, ui) {
+                    $("#EmployeeNum").val(ui.item.EmployeeNum);
+                    $("#Passport").val(ui.item.Passport);
+                },
+                select: function (event, ui) {
+                    $("#idfio").val(ui.item.id);
+                }
+             });
+
+        //Поиск по табельному номеру
+             $("#EmployeeNum").autocomplete({
+                 source: '@Url.Action("AutocompleteEmplNum")',
+                  //заполняем поля на форме при навелении на запись
+                focus: function (event, ui) {
+                    $("#fio").val(ui.item.fio);
+                    $("#Passport").val(ui.item.Passport);
+                 },
+                select: function (event, ui) {
+                    $("#idfio").val(ui.item.id);
+                }
+             });
+
+        //Поиск по паспорту
+             $("#Passport").autocomplete({
+                 source: '@Url.Action("AutocompletePassport")',
+                  //заполняем поля на форме при навелении на запись
+                focus: function (event, ui) {
+                    $("#fio").val(ui.item.fio);
+                    $("#EmployeeNum").val(ui.item.EmployeeNum);
+                 },
+                select: function (event, ui) {
+                    $("#idfio").val(ui.item.id);
+                }
+             });
+
+
+             //Очищаем записи при нажатии кнопки удаления //8-backspace, 46 - del,
+             $("#fio, #Passport, #EmployeeNum").keyup(function (e) {
+                 //проверяем что поле idfio не заполнено (для разрешения корректировки при вводе фамилии)
+                 //если оно заполнено то затираем !$("#Note").is(":focus") - проверка на то что мы не в фокусе поля
+
+                 if ($("#idfio").val().length !== 0) {
+                     if (e.keyCode == 8 || e.keyCode == 46) {
+                         empty();
+                     }
+                     else {
+                         alert("Исправления в данных полях НЕ ДОПУСКАЮТСЯ!!!\n\rДля исправления данных воспользуйтесь Справочником системы")
+                         empty()
+                     }
+                 }
+             })
+
+        //Изменяем номер рейса. При наведении мышки скрываем ViewBag и отображаем DropDownList
+         $("#flynum").mouseenter(function () {
+             $("#flynum").hide();
+             $("#flynumed").show();
+             // Добавляем надпись Все в выпадающий список
+             if ($("#flynumed :last").val() != 100) {
+                 $("#flynumed").append($('<option value="100">Все</option>'));
+             }
+         });
+
+            // При отведении указателя возвращаем всё обратно. Так как в мозиле элементы исчезают сразу при отведении курсора, то сделал задержку 3 с
+                 $("#flynumed").mouseleave(function () {
+                   setTimeout(function () {
+                     $("#flynum").show();
+                     $("#flynumed").hide();
+                 }, 3000);
+             });
+
+        //Изменение номера рейса
+               $("#flynumed").change(function () {
+                    $("#flynum").show();
+                    $("#flynumed").hide();
+                        //Если выбран пункт все, то мы отправляем FlightID первого элемента, так как нам нужно получить все рейсы на данную дату
+                        var FlightID = $("#flynumed").val() == 100 ? $("#flynumed :first").val() : $("#flynumed").val();
+                        var all = $("#flynumed").val() == 100 ? "yes" : "no";
+                        var url = '@Url.Action("Registration")?FlightID=' + FlightID + "&all=" + all;
+                        $("#reg, .footer").fadeOut(500);
+                    //Функция setTimeout добавлена для того, чтобы при изменени DropDownList обновлялись через 500мс, так как данные начинают грузиться сразу то возникает эффект "Тормозов"
+                        setTimeout(function () {
+                            $("#reg").load(url).fadeIn(2000);//fadeIn(2000) - анимация эффекта при загрузке страницы slideDown()
+                    }, 500);
+             });
+
+          //получаем информацию о пользователе
+         $('.InfoPassenger').click(function () {
+             var url = "@Url.Action("InfoPassenger")?ItemID=" + $(this).parents("tr").find('td:eq(1)').text();
+             $.get(url, function (result) {
+                 //http://craftpip.github.io/jquery-confirm/
+                 var cid = result.CreatorID;
+                 var eid = result.EditorID;
+                     $.dialog({
+                         animation: 'left',
+                         closeAnimation: 'left',
+                         type: 'blue',
+                         theme: 'dark',
+                         columnClass: 'small',
+                         escapeKey: true, //окно можно закрыть клавишей esc
+                         backgroundDismiss: true, //так же окно можно закрыть кликнув мышкой по пустой области при false закрыте только по нажатию кнопки в окне
+                         title: '<h4>Данные о пассажире:<br>' + result.UserName + '</h4>',
+                         content: function () {
+                             if (result.CreatorID === result.EditorID) {
+                                 return 'Место работы: ' + result.Work +
+                                     '<br>Телефон: ' + result.Phone +
+                                     '<br>Место жительства: ' + result.Residense +
+                                     '<br>' +
+                                     "<br>Пассажира добавил пользователь: " + result.CreatorID +
+                                     '<br>Телефон: ' + result.PhoneCID
+                             }
+                             else {
+                                 return 'Место работы: ' + result.Work +
+                                     '<br>Телефон: ' + result.Phone +
+                                     '<br>Место жительства: ' + result.Residense +
+                                     '<br>' +
+                                     "<br>Пассажира добавил пользователь: " + result.CreatorID +
+                                     '<br>Телефон: ' + result.PhoneCID +
+                                     '<br>Отредакитровал пользователь: ' + result.EditorID +
+                                     '<br>Телефон: ' + result.PhoneEID
+                                  }
+                                 }
+                             });
+                         });//-->get
+                        });
+
+         //Сообщение при нажатии на неактивную кнопку изменить или удалить
+         $(".noedit").click(function () {
+             $.alert({
+                 type: 'red',
+                 theme: 'dark',
+                 columnClass: 'small',
+                 title: "Внимание!",
+                 content: "Рейс в архиве. Данное действие не разрешено! "
+             })            
+         });
+         //Всплывающее меню на конверте
+         $(".sms-info").myTooltip({
+             offset: 15,
+             hideTime: 3000,
+             content: 'Информация об отправке смс пользователю',
+             direction: 'right',
+             action: 'click', //action:'hover', action:'click'
+             customClass: 'my-tooltip', //my-tooltip - это класс с закруглёнными краями                
+         });
+
+         //Всплывающее меню 
+         $(".sms-send").myTooltip({
+             offset: 15,
+             content: 'Смс уведомление отправлено',
+             direction: 'right',
+             hideTime: 3000,
+             animateOffsetPx: 100, //animateDuration
+             action: 'click', //action:'hover', action:'click'
+             customClass: 'my-tooltip', //my-tooltip - это класс с закруглёнными краями                
+         });
+         //Всплывающее меню 
+         $(".sms-notsend").myTooltip({
+             offset: 15,
+             hideTime: 3000,
+             content: 'Смс уведомление не отправлено',
+             direction: 'right',
+             animateOffsetPx: 100, //animateDuration
+             action: 'click', //action:'hover', action:'click'
+             customClass: 'my-tooltip', //my-tooltip - это класс с закруглёнными краями                
+         });
+         //Всплывающее меню 
+         $(".sms-wait").myTooltip({
+             offset: 15,
+             hideTime: 3000,
+             content: 'Уведомление ожидает отправки<br>(за 2 дня до вылета)',
+             direction: 'right',
+             animateOffsetPx: 100, //animateDuration
+             action: 'click', //action:'hover', action:'click'
+             customClass: 'my-tooltip', //my-tooltip - это класс с закруглёнными краями                
+         });
+         
+
+        });//-->function
+
+        //фейковая кнопка esc
+                /*$('body').keydown(function(e) {
+            if (e.keyCode == 27) {
+                alert('yay 4 escape keys')
+            }
+            console.log(e);
+        });
+
+        var e = $.Event("keydown", {
+            keyCode: 27
+        });
+
+        $('#escape').click(function() {
+            $("body").trigger(e);
+        });*/
+
+
+    </script>
+
+}

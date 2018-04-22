@@ -1,0 +1,10 @@
+﻿<input type="text" style="display:none" id="TypeReport" value="@ViewBag.TypeReport" />
+@if (@ViewBag.ChoosDate == 0) { ViewBag.ColorR = "mediumblue"; } else { ViewBag.ColorR = ""; }
+@if (@ViewBag.ChoosDate == 1) { ViewBag.ColorD = "mediumblue"; } else { ViewBag.ColorD = ""; }
+<h4 style="text-align:center">
+    Выберите период с
+    <ins id="ViewDateStart" style="color:@ViewBag.ColorR"><input id="StartDate" type="text" style="text-align:center; width:1pt;visibility:hidden" value="@ViewBag.SD" name="StartDate" />@ViewBag.StartDate</ins>
+    по <ins id="ViewDateEnd" style="color:@ViewBag.ColorR"><input id="EndDate" type="text" style="text-align:center; width:1pt;visibility:hidden" value="@ViewBag.ED" name="EndDate" />@ViewBag.EndDate</ins>
+    Или укажите дату вылета <ins id="ViewCurrentDate" style="color:@ViewBag.ColorD"><input id="CurrentDate" type="text" style="text-align:center; width:1pt;visibility:hidden" value="@ViewBag.CD" name="CurrentDate" />@ViewBag.CurrentDate</ins>
+    <input id="ChoosDate" type="text" style="text-align:center; width:1pt;visibility:hidden" value="@ViewBag.ChoosDate" name="ChoosDate" />
+</h4>      

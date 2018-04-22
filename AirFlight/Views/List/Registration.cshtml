@@ -1,0 +1,270 @@
+﻿@model IEnumerable<AirFlight.Models.RegistrationList>
+@using AirFlight.Models
+@using Microsoft.AspNet.Identity;
+@{
+    ViewBag.Title = "Регистрация пассажиров"; 
+}
+
+@*Так как AJAX напрямую не хочет отправлять значения переменных типа ViewBag.Departure то пришлось сделать их скрытыми*@
+    <div class="RegList" id="reg" style="text-align:center; width:100%">
+        <input style="display:none" id="all" value="@ViewBag.All">
+        <input style="display:none" id="user" value="@User.Identity.GetUserId()">
+        @{switch (@ViewBag.FD.ToString("dddd"))
+            { //Изменяем название дня недели (падеж) для отображения
+                case "понедельник":
+                    ViewBag.Day = "в понедельник";
+                    break;
+                case "вторник":
+                    ViewBag.Day = "во вторник";
+                    break;
+                case "среда":
+                    ViewBag.Day = "в среду";
+                    break;
+                case "четверг":
+                    ViewBag.Day = "в четверг";
+                    break;
+                case "пятница":
+                    ViewBag.Day = "в пятницу";
+                    break;
+                case "суббота":
+                    ViewBag.Day = "в субботу";
+                    break;
+                case "воскресенье":
+                    ViewBag.Day = "в воскресенье";
+                    break;
+            }
+        }
+        <h3>Список пассажиров вылетающих @ViewBag.Day, @ViewBag.FlightDate</h3>
+        <h4>По маршруту @ViewBag.Departure - @ViewBag.Arrival </h4>
+
+        @{
+            foreach (Flight FlyInfo in ViewBag.FlightInfo)
+            {
+                var Registration = Model.Where(r => r.FlightID == FlyInfo.id).ToList();
+                int count = 1;
+                ViewBag.FlyDay = FlyInfo.FlightDate.ToString("dddd"); //берём название дня недели
+                ViewBag.DepartureRole = "из " + FlyInfo.Departure; //Для разрешения добавления пассажира по направлениям (из Накына или в Накын)
+                ViewBag.ArrivalRole = "в " + FlyInfo.Arrival;
+                //изменяем окончания в названиях дней недели
+                if (FlyInfo.FlightDate.ToString("dddd") == "понедельник" || FlyInfo.FlightDate.ToString("dddd") == "вторник" || FlyInfo.FlightDate.ToString("dddd") == "четверг")
+                {
+                    ViewBag.FlyDayTransform = FlyInfo.FlightDate.ToString("dddd") + "ам";
+                }
+                if (FlyInfo.FlightDate.ToString("dddd") == "среда" || FlyInfo.FlightDate.ToString("dddd") == "пятница" || FlyInfo.FlightDate.ToString("dddd") == "суббота")
+                {
+                    ViewBag.FlyDayTransform = FlyInfo.FlightDate.ToString("dddd") + "м";
+                }
+                if (FlyInfo.FlightDate.ToString("dddd") == "воскресенье")
+                {
+                    ViewBag.FlyDayTransform = FlyInfo.FlightDate.ToString("dddd").Substring(0, 10) + "ям";
+                }
+
+                //количество мест для регистрации
+                ViewBag.Total = FlyInfo.Number - Registration.Count();
+                <h2 class="list-inline">Рейс № <ins class="flynum" id="flynum">@FlyInfo.FlightNum</ins>@Html.DropDownList("flynumed", ViewBag.FlightNumbers as SelectList, htmlAttributes: new { @style = "width:30pt; display:none; border:none", @class = "flynumed" }) Время вылета @FlyInfo.FlightTime.ToString().Substring(0, 5). Тип воздушного судна: @FlyInfo.AirType  </h2>
+
+                <table align="center" class="table  table-hover table-striped" style="text-align:center;width:1000px">
+                    <tr class="grad-grey-table">
+                        <th style="text-align:center;width:1cm">№</th>
+                        <th style="text-align:left;padding-left:1cm;width:10cm">Фамилия Имя Отчество</th>
+                        <th style="text-align:left; padding-left:5mm">Место работы</th>
+                        @if (FlyInfo.Approved == "Закрыта" || FlyInfo.Approved == "В архиве")
+                        {
+                            <th style="text-align:right;padding-right:5mm;cursor:help"><img class="sms-info" src="~/Image/sms-info.png" /></th>
+                        }
+                        else
+                        {
+                            <th></th>
+                        }                    
+                    </tr>
+
+                    @foreach (var item in Registration)
+                {
+                        <tr style="text-align:center">
+                            <td>@(count++)</td>
+                            <td style="display:none">
+                                @Html.DisplayFor(model => item.id)
+                            </td>
+                            <td style="text-align:left">
+                                <img class="InfoPassenger" src="~/Image/i.png" style="cursor:help" /> @Html.DisplayFor(modelItem => item.Passenger.Surname) @Html.DisplayFor(modelItem => item.Passenger.Name) @Html.DisplayFor(modelItem => item.Passenger.Middlename)
+                            </td>
+                            <td style="text-align:left"> 
+                                @Html.DisplayFor(modelItem => item.Passenger.Company), @Html.DisplayFor(modelItem => item.Passenger.Site), @Html.DisplayFor(modelItem => item.Passenger.Department)
+                               </td>
+                            @if (FlyInfo.Approved == "Закрыта" || FlyInfo.Approved == "В архиве")
+                            {
+                                if (FlyInfo.SendingSms == null)
+                                {
+                                    if (FlyInfo.SendingSms == null)
+                                    {
+                                        if (FlyInfo.FlightDate <= DateTime.Now.Date)
+                                        {
+                                            <td style="text-align:right;padding-right:5mm"><img style="cursor:help" class="sms-notsend" src="~/Image/sms-notsend.png" ) /></td>
+                                        }
+                                        else
+                                        {
+                                            <td style="text-align:right;padding-right:5mm"><img style="cursor:help" class="sms-wait" src="~/Image/sms-wait.png" ) /></td>
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    if (item.SendingSms == true)
+                                    {
+                                        <td style="text-align:right;padding-right:5mm"><img style="cursor:help" class="sms-send" src="~/Image/sms-send.png" /></td>
+                                    }
+                                    else
+                                    {
+                                        <td style="text-align:right;padding-right:5mm"><img style="cursor:help" class="sms-notsend" src="~/Image/sms-notsend.png" /></td>
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                <th style="text-align:right;padding-right:5mm"></th>
+                            }                            
+                        </tr>
+
+                    } @*foreach (var item in Registration)*@
+
+                </table>             
+
+                <br />
+            } /*Закрытие foreach (var FlyNumber in ViewBag.FlightNumS)*/
+        }
+        <p style="float:left">@Html.ActionLink("Вернуться к выбору рейсов", "Start")</p>
+        <br />
+    </div>
+
+
+@section scripts
+    {
+    <script type="text/javascript">
+        $(window).ready(function () {
+            //запрещаем браузеру кэшировать данные AJAX
+            $.ajaxSetup({ cache: false });
+            //Для того что бы активировать DropDown menu обновляем его
+            $(".dropdown-toggle").dropdown();
+        });
+        //Ссылка добавить пассажира
+        $(function () {
+
+            //Изменяем номер рейса. При наведении мышки скрываем ViewBag и отображаем DropDownList
+            $("#flynum").mouseenter(function () {
+                $("#flynum").hide();
+                $("#flynumed").show();
+                // Добавляем надпись Все в выпадающий список
+                if ($("#flynumed :last").val() != 100) {
+                    $("#flynumed").append($('<option value="100">Все</option>'));
+                }
+            });
+
+            // При отведении указателя возвращаем всё обратно. Так как в мозиле элементы исчезают сразу при отведении курсора, то сделал задержку 3 с
+            $("#flynumed").mouseleave(function () {
+                setTimeout(function () {
+                    $("#flynum").show();
+                    $("#flynumed").hide();
+                }, 3000);
+            });
+
+             //Изменение номера рейса в общем списке
+               $("#flynumed").change(function () {
+                    $("#flynum").show();
+                    $("#flynumed").hide();
+                        //Если выбран пункт все, то мы отправляем FlightID первого элемента, так как нам нужно получить все рейсы на данную дату
+                        var FlightID = $("#flynumed").val() == 100 ? $("#flynumed :first").val() : $("#flynumed").val();
+                        var all = $("#flynumed").val() == 100 ? "yes" : "no";
+                        var url = '@Url.Action("Registration")?FlightID=' + FlightID + "&all=" + all;
+                        $("#reg, .footer").fadeOut(500);
+                    //Функция setTimeout добавлена для того, чтобы при изменени DropDownList обновлялись через 500мс, так как данные начинают грузиться сразу то возникает эффект "Тормозов"
+                        setTimeout(function () {                           
+                            $("#reg").load(url).fadeIn(2000);//fadeIn(2000) - анимация эффекта при загрузке страницы slideDown()
+                    }, 500);
+             });
+
+        //получаем информацию о пользователе
+         $('.InfoPassenger').click(function () {
+             var url = "@Url.Action("InfoPassenger")?ItemID=" + $(this).parents("tr").find('td:eq(1)').text();
+                   $.get(url, function (result) {
+                       //http://craftpip.github.io/jquery-confirm/
+                       var cid = result.CreatorID;
+                       var eid = result.EditorID;
+                       $.dialog({
+                           animation: 'left',
+                           closeAnimation: 'left',
+                           type: 'blue',
+                           theme: 'dark',
+                           columnClass: 'small',
+                           escapeKey: true, //окно можно закрыть клавишей esc
+                           backgroundDismiss: true, //так же окно можно закрыть кликнув мышкой по пустой области при false закрыте только по нажатию кнопки в окне
+                           title: '<h4>Данные о пассажире:<br>' + result.UserName + '</h4>',
+                           content: function () {
+                               if (result.CreatorID === result.EditorID) {
+                                   return 'Место работы: ' + result.Work +
+                                       '<br>Телефон: ' + result.Phone +
+                                       '<br>Место жительства: ' + result.Residense +
+                                       '<br>' +
+                                       "<br>Пассажира добавил пользователь: " + result.CreatorID +
+                                       '<br>Телефон: ' + result.PhoneCID
+                               }
+
+                               else {
+                                   return 'Место работы: ' + result.Work +
+                                       '<br>Телефон: ' + result.Phone +
+                                       '<br>Место жительства: ' + result.Residense +
+                                       '<br>' +
+                                       "<br>Пассажира добавил пользователь: " + result.CreatorID +
+                                       '<br>Телефон: ' + result.PhoneCID +
+                                       '<br>Отредакитровал пользователь: ' + result.EditorID +
+                                       '<br>Телефон: ' + result.PhoneEID
+                               }
+                           }
+                       });
+                   });//-->get
+               });
+
+               //Всплывающее меню на конверте
+               $(".sms-info").myTooltip({
+                   offset: 15,
+                   hideTime: 3000,
+                   content: 'Информация об отправке смс пользователю',
+                   direction: 'right',
+                   action: 'click', //action:'hover', action:'click'
+                   customClass: 'my-tooltip', //my-tooltip - это класс с закруглёнными краями
+               });
+               //Всплывающее меню
+               $(".sms-send").myTooltip({
+                   offset: 15,
+                   content: 'Смс уведомление отправлено',
+                   direction: 'right',
+                   hideTime: 3000,
+                   animateOffsetPx: 100, //animateDuration
+                   action: 'click', //action:'hover', action:'click'
+                   customClass: 'my-tooltip', //my-tooltip - это класс с закруглёнными краями
+               });
+               //Всплывающее меню
+               $(".sms-notsend").myTooltip({
+                   offset: 15,
+                   hideTime: 3000,
+                   content: 'Смс уведомление не отправлено',
+                   direction: 'right',
+                   animateOffsetPx: 100, //animateDuration
+                   action: 'click', //action:'hover', action:'click'
+                   customClass: 'my-tooltip', //my-tooltip - это класс с закруглёнными краями
+               });
+               //Всплывающее меню
+               $(".sms-wait").myTooltip({
+                   offset: 15,
+                   hideTime: 3000,
+                   content: 'Уведомление ожидает отправки<br>(за 2 дня до вылета)',
+                   direction: 'right',
+                   animateOffsetPx: 100, //animateDuration
+                   action: 'click', //action:'hover', action:'click'
+                   customClass: 'my-tooltip', //my-tooltip - это класс с закруглёнными краями
+               });
+
+        });//-->function
+
+    </script>
+
+}

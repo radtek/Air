@@ -1,0 +1,202 @@
+﻿@model IEnumerable<AirFlight.Models.RegistrationList>
+@using AirFlight.Models
+@{
+    ViewBag.Title = "Печать";
+    //Подсчёт количества зарегистрированных пользователей в спсике
+    List<int> countp = new List<int>();
+    foreach (var i in ViewBag.registrationlist)
+    { countp.Add(i); }
+}
+<div id="choosefly">
+    <h3 style="text-align:center">Печать рейсов</h3>
+    @if (@ViewBag.ChoosDate == 0) { ViewBag.ColorR = "mediumblue"; } else { ViewBag.ColorR = ""; }
+    @if (@ViewBag.ChoosDate == 1) { ViewBag.ColorD = "mediumblue"; } else { ViewBag.ColorD = ""; }
+    <h4 style="text-align:center">
+        Выберите период с
+        <ins id="ViewDateStart" style="color:@ViewBag.ColorR"><input id="StartDate" type="text" style="text-align:center; width:1pt;visibility:hidden" value="@ViewBag.SD" name="StartDate" />@ViewBag.StartDate</ins>
+        по <ins id="ViewDateEnd" style="color:@ViewBag.ColorR"><input id="EndDate" type="text" style="text-align:center; width:1pt;visibility:hidden" value="@ViewBag.ED" name="EndDate" />@ViewBag.EndDate</ins>
+        Или укажите дату вылета <ins id="ViewCurrentDate" style="color:@ViewBag.ColorD"><input id="CurrentDate" type="text" style="text-align:center; width:1pt;visibility:hidden" value="@ViewBag.CD" name="CurrentDate" />@ViewBag.CurrentDate</ins>
+        <input id="ChoosDate" type="text" style="text-align:center; width:1pt;visibility:hidden" value="@ViewBag.ChoosDate" name="ChoosDate" />
+    </h4>
+    <h4 style="text-align:center;" class="list-inline">
+        Показать все рейсы @Html.DropDownList("sortdate", new List<SelectListItem>() {
+                                     new SelectListItem { Text = "за выбранный период",  Value = "0"},
+                                     new SelectListItem { Text = "по направлениям", Value = "1"} },
+                                     new { @style = "border:none;max-width:420px; width:auto; selected:false" })
+    </h4>
+    @{ if (ViewBag.SortDate == 0)
+        {
+            <table class="table  table-hover" style="text-align:center">
+                <tr class="grad-grey-table">            
+                    <th style="text-align:center;width:3cm">Время</th>
+                    <th style="text-align:center;width:3cm">№ рейса</th>
+                    <th style="text-align:center;width:4cm">От куда</th>
+                    <th style="text-align:center;width:4cm">Куда</th>
+                    <th style="text-align:center;width:4cm">Тип в/c</th>
+                    <th style="text-align:center;width:4cm">Регистрация</th>
+                    <th style="text-align:center;width:3cm">Всего</th>
+                    <th style="text-align:center">Примечание</th>                    
+                    <th style="text-align:center;width:6cm;padding-right:5mm">Действия</th>
+                </tr>
+            @foreach (var day in Model.Select(d => d.Flight.FlightDate).Distinct())
+            {
+                /*Строка с названием дня недели*/
+                <tr>
+                    <td colspan="9" style="font-size:14pt;background-color:moccasin;font-style:italic;font-family:'Segoe Print';padding:1px"class="grad">
+                        <b>@day.ToString("dddd"), @day.ToString("D")</b>
+                    </td>
+                </tr>
+                using (AirFlightContext db = new AirFlightContext())
+                {
+                    DateTime SD = Convert.ToDateTime(ViewBag.StartDate);
+                    DateTime ED = Convert.ToDateTime(ViewBag.EndDate);
+                    DateTime CD = Convert.ToDateTime(ViewBag.CurrentDate);
+                    var fly = ViewBag.ChoosDate == 0 ? db.Flights.Where(s => s.FlightDate >= SD && s.FlightDate <= ED).OrderBy(s => s.FlightDate).ToList() :
+                                           db.Flights.Where(s => s.FlightDate == CD).ToList();
+
+                    foreach (var item in fly.Where(f=>f.FlightDate == day).OrderByDescending(f => f.Departure == "Мирный" && f.Arrival == "Накын")
+                    .ThenByDescending(f => f.Departure == "Накын" && f.Arrival == "Мирный").ThenByDescending(f => f.Departure == "Нюрба" && f.Arrival == "Накын")
+                    .ThenByDescending(f => f.Departure == "Накын" && f.Arrival == "Нюрба").ThenByDescending(f => f.Departure == "Накын" && f.Arrival == "Вилюйск")
+                    .ThenByDescending(f => f.Departure == "Вилюйск" && f.Arrival == "Накын").ThenBy(f => f.FlightNum))
+                    {
+                        if (item.Approved == "Открыта" || item.Approved == "Ограничена") { ViewBag.Color = " "; } else { ViewBag.Color = "warning"; }
+                    <tr style="text-align:center" class=@ViewBag.Color>
+                        <td>@Html.DisplayFor(modelItem => item.FlightTime).ToString().Substring(0, item.FlightTime.ToString().Length - 3) </td>
+                        <td>@Html.DisplayFor(modelItem => item.FlightNum)</td>
+                        <td>@Html.DisplayFor(modelItem => item.Departure)</td>
+                        <td>@Html.DisplayFor(modelItem => item.Arrival)</td>
+                        <td>@Html.DisplayFor(modelItem => item.AirType)</td>
+                        <td>@Html.DisplayFor(modelItem => item.Approved)</td>
+                        <td>@(ViewBag.countp = countp.Count(p => p == item.id))</td> @*Считаем количество пассажиров на рейсе*@
+                        <td>@Html.DisplayFor(model => item.Note)</td>
+                        <td>
+                            @Html.ActionLink("Печать", "PrintFlights", new { sortDate = ViewBag.SortDate, FlightID = item.id }) 
+                            <a>|</a>
+                            @Html.ActionLink("Экспорт в Excel", "ExportExcel", new { sortDate = ViewBag.SortDate, FlightID = item.id })
+                        </td>
+                    </tr>
+                    }
+                }
+            }
+            </table>
+        }
+        else
+        {           
+            var fly = Model.Select(r => new { r.Flight.FlightDate, r.Flight.Departure, r.Flight.Arrival }).Distinct().ToList();
+            <table class="table  table-hover" style="text-align:center">
+                <tr class="grad-grey-table">             
+                    <th style="text-align:center;width:4cm">От куда</th>
+                    <th style="text-align:center;width:4cm">Куда</th>
+                    <th style="text-align:center;width:3cm" id="totalp">Всего</th>
+                    <th style="text-align:center">Наличие не закрытых регистраций</th>                    
+                    <th style="text-align:center;width:6cm;padding-right:5mm">Действия</th>
+                </tr>
+            @foreach (var day in Model.Select(d => d.Flight.FlightDate).Distinct())
+            {
+                /*Строка с названием дня недели*/
+                <tr>
+                    <td colspan="9" style="font-size:14pt;background-color:moccasin;font-style:italic;font-family:'Segoe Print';padding:1px"class="grad">
+                        <b>@day.ToString("dddd"), @day.ToString("D")</b>
+                    </td>
+                </tr>
+                    foreach (var f in fly.Where(f=>f.FlightDate==day))
+                    { //определяем количество открытых регистрация за каждый день
+                        List<DateTime> countopen = new List<DateTime>();
+                        foreach (Flight Flights in ViewBag.openreg)
+                        {
+                            if (Flights.Arrival == f.Arrival && Flights.Departure == f.Departure)
+                            {
+                                countopen.Add(Flights.FlightDate);
+                            }
+                        }
+
+                        ViewBag.Color = countopen.Count(p => p == f.FlightDate) == 0 ? "warning" : " ";
+                        <tr style="text-align:center" class=@ViewBag.Color>
+                            <td>@Html.DisplayFor(modelItem => f.Departure)</td>
+                            <td>@Html.DisplayFor(modelItem => f.Arrival)</td>  
+                            <td>@(Model.Where(s => s.Flight.FlightDate == f.FlightDate && s.Flight.Departure == f.Departure && s.Flight.Arrival == f.Arrival).Select(s => s.FlightID).Count())</td>    
+                            @if (countopen.Count(p => p == f.FlightDate) == 0)
+                            {
+                                <td></td>
+                            }
+                            else
+                            {
+                                ViewBag.totalp = countopen.Count(p => p == f.FlightDate);
+                                ViewBag.sufz = countopen.Count(p => p == f.FlightDate) >= 2 ? "закрытые" : "закрытая";
+                                ViewBag.sufr = countopen.Count(p => p == f.FlightDate) >= 2 ? "регистрации" : "регистрация";
+                                    <td style="color:dodgerblue">Внимание! Есть @ViewBag.totalp не @ViewBag.sufz @ViewBag.sufr</td>
+                            }                                                        
+                              @*Подсчитываем общее количество человек на всех рейсах*@                                                  
+                            <td>
+                                @Html.ActionLink("Печать", "PrintFlights", new { sortDate = ViewBag.SortDate, FlightDate = f.FlightDate, Departure = f.Departure.Trim(), Arrival = f.Arrival.Trim() })  
+                                <a>|</a>
+                                @Html.ActionLink("Экспорт в Excel", "ExportExcel", new { sortDate = ViewBag.SortDate, FlightDate = f.FlightDate, Departure = f.Departure.Trim(), Arrival = f.Arrival.Trim() })                                
+                              </td>                         
+                           </tr>
+                    }
+            }
+            </table >
+
+        }
+      } @*закрывающий тэг if*@
+    </div>
+
+
+@section scripts
+    {
+    <script type="text/javascript">
+        $(window).ready(function () {
+            $.ajaxSetup({ cache: false });
+             //Так как дерево DOM будет динамически загружено, то нам необходимо удалить все объекты Datapicker, иначе не он будет работать при загрузке страницы
+            $("#ui-datepicker-div").remove();
+            //Для того что бы активировать DropDown menu обновляем его
+            $(".dropdown-toggle").dropdown();
+      });
+        //Выбор типа сортировки по дате или все рейсы
+        $("#sortdate").change(function () {
+            var url = "@Url.Action("ChoosePrintFlights")";
+            var data={
+                StartDate: $("#StartDate").val(),
+                EndDate: $("#EndDate").val(),
+                CurrentDate: $("#CurrentDate").val(),
+                choosDate: $("#ChoosDate").val(),
+                sortDate: $("#sortdate").val()
+            };
+            $(".footer").hide();
+            $("#choosefly").load(url, data);
+        });
+
+
+        //Выбор даты сортировки
+            $("#ViewDateStart").click(function () {
+                $("#ChoosDate").val(0);
+                $("#StartDate").datepicker({ showOtherMonths: true, selectOtherMonths: true, dateFormat: "yy-mm-dd", showAnim: "puff"}).datepicker("show")
+            });
+
+         //Выбор даты сортировки
+            $("#ViewDateEnd").click(function () {
+                $("#ChoosDate").val(0);
+                $("#EndDate").datepicker({ showOtherMonths: true, selectOtherMonths: true, dateFormat: "yy-mm-dd", showAnim: "puff"}).datepicker("show")
+            });
+
+         //Выбор даты сортировки
+            $("#ViewCurrentDate").click(function () {
+                $("#ChoosDate").val(1);
+                $("#CurrentDate").datepicker({ showOtherMonths: true, selectOtherMonths: true, dateFormat: "yy-mm-dd", showAnim: "puff" }).datepicker("show")
+            });
+
+        //Выбор дат
+             $("#StartDate, #EndDate, #CurrentDate").change(function () {
+                 var url = "@Url.Action("ChoosePrintFlights")?StartDate=" + $("#StartDate").val() + "&EndDate=" + $("#EndDate").val() + "&CurrentDate=" + $("#CurrentDate").val() + "&ChoosDate=" + $("#ChoosDate").val();
+                 $(".footer").hide();               
+                 $.get(url, function (result) {
+                     setTimeout(function () {
+                         $("#choosefly").html(result);
+                     }, 400);
+                 });
+                });
+        
+
+    </script>
+
+}

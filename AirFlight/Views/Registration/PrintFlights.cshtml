@@ -1,0 +1,124 @@
+﻿@model IEnumerable<AirFlight.Models.RegistrationList>
+
+@{
+    ViewBag.Title = "Список вылетающих";
+}
+<br />
+<div style="width:300mm;margin:auto">
+    <p style="float:left">@Html.ActionLink("Вернуться к выбору рейсов", "ChoosePrintFlights")</p>
+    <p style="float:right">@Html.ActionLink("Печать", null, null, new { @class = "print" })</p>
+</div>
+<br />
+    <div id="PrintList" style="width:230mm; margin:0 auto;font-family:Arial">
+        @{foreach (var FlyID in ViewBag.FlightNumS)
+            {
+                var datefly = Model.FirstOrDefault(f => f.FlightID == FlyID);
+                switch (datefly.Flight.FlightDate.ToString("dddd"))
+                    { //Изменяем название дня недели (падеж) для отображения
+                        case "понедельник":
+                            ViewBag.Day = "в понедельник";
+                            break;
+                        case "вторник":
+                            ViewBag.Day = "во вторник";
+                            break;
+                        case "среда":
+                            ViewBag.Day = "в среду";
+                            break;
+                        case "четверг":
+                            ViewBag.Day = "в четверг";
+                            break;
+                        case "пятница":
+                            ViewBag.Day = "в пятницу";
+                            break;
+                        case "суббота":
+                            ViewBag.Day = "в субботу";
+                            break;
+                        case "воскресенье":
+                            ViewBag.Day = "в воскресенье";
+                            break;
+                    }                
+                <h4 style="text-align:center"><b>Список работников, вылетающих @ViewBag.Day, @datefly.Flight.FlightDate.ToLongDateString()</b></h4>               
+                <h4 style="text-align:center"><b>По маршруту: @datefly.Flight.Departure - @datefly.Flight.Arrival.</b></h4>
+                <h4 style="text-align:center"><b>Время вылета @datefly.Flight.FlightTime.ToString().Substring(0, 5). Рейс № @datefly.Flight.FlightNum. Тип В/С @datefly.Flight.AirType.</b></h4>
+                <br />
+            <table border="1" style="text-align:center;width:230mm;font-size:13pt;border-collapse:collapse;page-break-after:always">
+                <tr>
+                    <td style="width:1cm">№</td>
+                    <td style="width:10cm">Фамилия Имя Отчество</td>
+                    <td style="width:2cm">Таб. №</td>                   
+                    <td>Цех</td>                    
+                </tr>              
+                @{
+                    var registration = Model.Where(f => f.FlightID == FlyID);
+                    int i = 1;
+                    int c = registration.Count();
+                    foreach (var item in registration)
+                    {  
+                         <tr>
+                            <td>@(i++)</td>
+                            <td style="text-align:left;padding-left:0.5cm">@item.Passenger.Surname @item.Passenger.Name @item.Passenger.Middlename</td>                           
+                            <td>@item.Passenger.EmployeeNum</td>                    
+                            <td style="text-align:left;padding-left:0.5cm">@item.Passenger.Site</td>
+                        </tr>
+                    }
+                    for (int d = 1; d <= 30 - c; d++)
+                    {
+                        <tr>
+                            <td>@(i++)</td>
+                            <td style="text-align:left;padding-left:10px">@Html.TextBox("fio", null, new { @style = "border:none; width:10cm" })</td>                            
+                            <td>@Html.TextBox("emplnum", null, new { @style = "border:none;width:17mm;text-align:center"})</td>
+                            <td>@Html.TextBox("sitelist", null, new { @style = "border:none; width:10cm;text-align:left" })</td>                           
+                        </tr>                        
+                    }
+                }
+                <tr>
+                    <td colspan="3" style="text-align:right;padding-right:10px;font-size:16pt;"><b>Всего пассажиров</b></td>
+                    <td><b>@Html.TextBox("total", null, new { @style = "border:none; width:20mm;text-align:center;font-size:16pt"})</b></td>
+                </tr>
+            </table>   
+             }
+        }    
+    </div>  
+<br />
+<br />
+    <div style="width:300mm;margin:auto">
+        <p style="float:left">@Html.ActionLink("Вернуться к выбору рейсов", "ChoosePrintFlights")</p>
+        <p style="float:right">@Html.ActionLink("Печать", null, null, new { @class = "print" })</p>
+    </div>
+<br/>
+<br/>
+
+@section scripts
+{
+    <script type="text/javascript">
+        $(window).ready(function () {          
+            $.ajaxSetup({ cache: false }); 
+            $(".dropdown-toggle").dropdown();
+        });
+        //Задаём маску для табельного номера
+          $(function ($) {
+            $(".emplnum").mask("9999", { placeholder: " " })
+       
+
+        //Задаём маску для паспортных данных
+       
+            $(".pass").mask("9999 999999", { placeholder: " " })
+      
+      
+
+        $(".print").click(function (e) {
+            e.preventDefault();           
+            $("#PrintList").print({
+                globalStyles: false,
+                // не показывать страницу перед печатью
+                iframe: true,          
+            });
+        });
+
+
+          });
+   
+    </script>
+}
+
+

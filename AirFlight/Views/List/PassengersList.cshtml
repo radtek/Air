@@ -1,0 +1,226 @@
+﻿@model IEnumerable<AirFlight.Models.RegistrationList>
+@{
+    ViewBag.Title = "Мирный-Накын";
+}
+<div id="RegList" style="width:100%">
+    @{switch (@ViewBag.FlightDate1.ToString("dddd"))
+        {
+            case "понедельник":
+                ViewBag.Day = "в понедельник";
+                break;
+            case "вторник":
+                ViewBag.Day = "во вторник";
+                break;
+            case "среда":
+                ViewBag.Day = "в среду";
+                break;
+            case "четверг":
+                ViewBag.Day = "в четверг";
+                break;
+            case "пятница":
+                ViewBag.Day = "в пятницу";
+                break;
+            case "суббота":
+                ViewBag.Day = "в субботу";
+                break;
+            case "воскресенье":
+                ViewBag.Day = "в воскресенье";
+                break;
+        }
+    }      
+    <div id="search-block-form" style="position:absolute; right:120px;top:70px;overflow:no-display">
+        <input style="display:none" id="idpass" value="@ViewBag.findpassenger">
+        <div class="form-item">
+            <input type="text" id="findpass" value="@ViewBag.findepassenger" placeholder="Поиск пассажира...">
+        </div>
+        <div class="form-actions">
+            <input type="button" id="find" value="Поиск" class="form-submit">
+        </div>
+    </div>        
+    @if (Model.Count() == 0 && ViewBag.findepassenger != "")
+    {
+        <br />
+        <br />
+        <br />
+        <br />
+        <h4 style="text-align:center">Пассажир @ViewBag.findepassenger в списках на вылет с @ViewBag.FlightDate по @ViewBag.ED не найден!</h4>
+    }
+
+   @if (ViewBag.findepassenger == "")
+   {
+    <h4>&nbsp;</h4>
+    <h3 style="text-align:center">
+        Список пассажиров вылетающих @ViewBag.Day,
+        <ins id="datepicker" style="color:blue"><input id="date-input" type="text" style="text-align:center; width:1pt;visibility:hidden" value="@ViewBag.FD" name="FlightDate" />@ViewBag.FlightDate</ins>
+    </h3>   
+    <h3 style="text-align:center;margin:1px">
+        по маршруту: @Html.DropDownList("selectRoute", new List<SelectListItem>() {
+        new SelectListItem { Text = "Все направления", Value = "0"},
+        new SelectListItem { Text = "Мирный-Накын",  Value = "1"},
+        new SelectListItem { Text = "Накын-Мирный",  Value = "2"},
+        new SelectListItem { Text = "Нюрба-Накын",   Value = "3"},
+        new SelectListItem { Text = "Накын-Нюрба",   Value = "4"},
+        new SelectListItem { Text = "Вилюйск-Накын", Value = "5" },
+        new SelectListItem { Text = "Накын-Вилюйск", Value = "6" },
+        new SelectListItem { Text = "Накын-Чукар", Value = "7" },
+        new SelectListItem { Text = "Чукар-Накын", Value = "8" },
+        new SelectListItem { Text = "Кюндядя-Накын", Value = "9" },
+        new SelectListItem { Text = "Накын-Кюндядя", Value = "10" },
+        new SelectListItem { Text = "Малыкай-Накын", Value = "11" },
+        new SelectListItem { Text = "Накын-Малыкай", Value = "12" } },
+        new { @style = "selected:false; border:none;" })
+    </h3>     
+   }
+ 
+        @{
+            foreach (var FlyId in Model.Select(f => f.FlightID).Distinct())
+            {
+                var Registration = Model.Where(s => s.Flight.id == FlyId).ToList();
+                //Записываем в переменные информацию о рейсах
+                if (Registration.Count == 0)
+                {
+                    continue;
+                }
+                ViewBag.FlyTime = Registration.FirstOrDefault().Flight.FlightTime.ToString().Substring(0, 5); //время вылета (обрезаем 3 последних знака - секунды)
+                ViewBag.AirType = Registration.FirstOrDefault().Flight.AirType;
+                ViewBag.FlyNumber = Registration.FirstOrDefault().Flight.FlightNum;
+                ViewBag.Departure = Registration.FirstOrDefault().Flight.Departure;
+                ViewBag.Arrival = Registration.FirstOrDefault().Flight.Arrival;
+                ViewBag.Data = Registration.FirstOrDefault().Flight.FlightDate.ToLongDateString();
+                ViewBag.DayFly = Registration.FirstOrDefault().Flight.FlightDate.ToString("dddd");
+
+                if (ViewBag.findepassenger != "")
+                {
+                <br />
+                <br />
+                }
+
+                <h3 style="text-align:center;margin:10px"><b>@ViewBag.Departure - @ViewBag.Arrival</b></h3>
+                if (ViewBag.findepassenger == "")
+                {
+                    <h3 style="text-align:center;margin-top:10px"><b>Рейс №@ViewBag.FlyNumber. Время вылета @ViewBag.FlyTime. Типвоздушного судна: @ViewBag.AirType </b></h3>
+                }
+                else
+                { 
+                  <h3 style="text-align:center"><b>@ViewBag.DayFly, @ViewBag.Data Рейс №@ViewBag.FlyNumber. Время вылета @ViewBag.FlyTime. Типвоздушного судна: @ViewBag.AirType </b></h3>                                      
+                }
+                <table align="center" class="table table-hover table-striped AutoNumberRow" style="width:1300px">
+                    <tr class="grad-grey-table">
+                        <th style="text-align:center;width:1cm">№</th>
+                        <th style="text-align:left;padding-left:5mm;width:9cm">Фамилия Имя Отчество</th>
+                        <th style="text-align:left">Место работы</th>                       
+                    </tr>
+                    @foreach (var item in Registration)
+                    {
+                        <tr>
+                            <td style="text-align:center"></td>
+                            <td style="text-align:left;padding-left:5mm">@Html.DisplayFor(modelItem => item.Passenger.Surname) @Html.DisplayFor(modelItem => item.Passenger.Name) @Html.DisplayFor(modelItem => item.Passenger.Middlename)</td>
+                            <td>@Html.DisplayFor(modelItem => item.Passenger.Company), @Html.DisplayFor(modelItem => item.Passenger.Site), @Html.DisplayFor(modelItem => item.Passenger.Department)</td>                           
+                        </tr>
+                    }
+                </table>
+                <br />              
+               }
+            }
+</div>
+
+@section scripts
+{
+    <script type="text/javascript">
+
+        $(window).ready(function () {
+            //запрещаем браузеру кэшировать данные AJAX
+            $.ajaxSetup({ cache: false });
+            //Так как дерево DOM будет динамически загружено, то нам необходимо удалить все объекты Datapicker, иначе не он будет работать при загрузке страницы
+            $("#ui-datepicker-div").remove();
+            //Для того что бы активировать DropDown menu обновляем его
+            $(".dropdown-toggle").dropdown();
+        });
+
+        $(function () {
+
+
+            $("#datepicker").click(function () {
+                $("#date-input").datepicker({ showOtherMonths: true, selectOtherMonths: true,  dateFormat: "yy-mm-dd", showAnim: "puff"}).datepicker("show")
+            });
+  
+
+         $("#date-input").change(function () {
+                var url = "@Url.Action("PassengersList")?FlightDate=" + $("#date-input").val();
+        $(".footer").hide();
+        $("#RegList").load(url);
+                });
+        
+            
+        //Выбор направления вылета
+             $("#selectRoute").change(function () {
+                 var url = "@Url.Action("PassengersList")?selectRoute=" + $("#selectRoute").val();
+                 $(".footer").hide();
+                 $("#RegList").load(url);
+             });
+
+      //****************Поиск пассажира********************/////
+             $("#findpass").autocomplete({
+                 source: '@Url.Action("AutocompleteFindPassenger")',
+                 select: function (event, ui) {
+                     $("#idpass").val(ui.item.id);
+                     var url = "@Url.Action("PassengersList")";
+                     var data = {
+                     findpassenger: $("#idpass").val()
+                      };
+                 $(".footer").hide();
+                 $("#RegList").load(url, data);
+                 },
+             });
+
+            //Поиск при клике на значке лупы
+             $("#find").click(function () {
+                var url = "@Url.Action("PassengersList")";
+                 var data = {
+                     findpassenger: $("#idpass").val()
+                 };
+                 $(".footer").hide();
+                 $("#RegList").load(url, data);
+             });
+
+            //отправляем значения idpass в контроллер при потере фокуса
+             $("#findpass").focusout(function () {
+                 if ($("#findpass").val().length === 0)
+                 {                    
+                     var url = "@Url.Action("PassengersList")";
+                     var data = {
+                     findpassenger: $("#idpass").val()
+                 };
+                 $(".footer").hide();
+                 $("#RegList").load(url, data);
+                 }
+             });
+
+             $("#findpass").myTooltip({
+                 offset: 15,
+                 content: 'Введите первые буквы фамилии. Для отмены поиска очистите данное поле и кликните мышкой в любом месте',
+                 direction: 'bottom',
+                 animateOffsetPx: 50, //animateDuration
+                 action: 'hover', //action:'hover', action:'click'
+                 customClass: 'my-tooltip', //my-tooltip - это класс с закруглёнными краями
+                 disposable: true
+             });
+
+             //очищаем поле поиска при нажатии на клавишу 8-backspace, 46 - del,
+             $("#findpass").keyup(function (e) {
+                 if ($("#idpass").val() !== "0") {
+                     if (e.keyCode == 8 || e.keyCode == 46) {
+                         $("#idpass").val(0)
+                         $("#findpass").val("");
+                     }
+                 }
+             })       
+       ////*****************Конец блока поиска пассжира*************///////////////////
+
+
+        }); //закрытие function
+
+    </script>
+}
+
+

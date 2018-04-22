@@ -1,31 +1,112 @@
 ﻿@{
-    ViewBag.Title = "Home Page";
+    ViewBag.Title = "НГОК";
 }
 
-<div class="jumbotron">
-    <h1>ASP.NET</h1>
-    <p class="lead">ASP.NET is a free web framework for building great Web sites and Web applications using HTML, CSS and JavaScript.</p>
-    <p><a href="https://asp.net" class="btn btn-primary btn-lg">Learn more &raquo;</a></p>
+<style>
+    .image {
+        margin-bottom: 0px;
+        background-image: url('../../Image/fly_v2.jpg');
+        background-position: 0% 60%;
+        background-size: cover;
+        background-repeat: no-repeat;
+        color: white;
+        text-shadow: black 0.3em 0.3em 0.3em;
+    }
+</style>
+@*grad-grey*@
+<div class="jumbotron image">
+    <noscript><h3 class="NotJavaSupport" style="text-align:center; color:#ff0000">Внимание! Ваш браузер не поддерживает работу с Java Script,<br />пожалуйста, откройте систему в другом браузере!</h3></noscript>   
+       <div style="display:inline; float:right;text-align:center">
+        <h5 style="margin:0 0 1px 0">@ViewBag.Temperatura &deg;С</h5>
+        <h5 style="margin:0 0 1px 0">Накын</h5>
+        <p style="margin:0 0 1px 0;font-size:6pt">@ViewBag.TimeUpdate</p>
+        <p style="margin:3px 0 0 0;font-size:6pt;text-shadow:0 0 2px black">На сайте: @AirFlight.Models.ActiveSessions.Count</p>
+</div>
+    <br />  
+    <br /> 
+    <p style="text-align:center;text-shadow:0 0 2px black;padding-left:3em"><img al src="~/Image/ALROSA_Logo.png" /></p>
+    <h2 style="text-align:center;text-shadow:0 0 2px black">Нюрбинский горно-обогатительный комбинат</h2>
+    <p class="lead" style="text-align:center;text-shadow:0 0 2px black">Система регистрации пассажиров</p>    
+    <br />       
+</div>
+<div class="row" style="text-align:center">
+    <div class="col-md-4">
+       
+    </div>    
+    <div class="col-md-4">
+     
+    </div>
+    <div class="col-md-4">       
+    </div>
+        <div class="radioplayer" style="width:200px; margin:auto;padding-bottom:1cm;position:center">
+            @* Определяем источник вещания для конкретного IP адреса *@
+            @if (Request.UserHostAddress.IndexOf("10.160") != -1)
+            {
+                <div class="audio-player">
+                    <h1 class="raiohendel">ТРК Алмазный Край</h1>
+                    <audio id="audio-player" src="http://10.160.40.10:7000/AK" type="audio/mpeg" controls preload="none"></audio>
+                </div>
+            }
+            else
+            {
+                <div class="audio-player" style="display:none">
+                    <h1 class="raiohendel">ТРК Алмазный Край</h1>
+                    <audio id="audio-player" src="http://10.64.95.30:8000/live" type="audio/mpeg" controls preload="none"></audio>                    
+                </div>               
+            }           
+        </div>
 </div>
 
-<div class="row">
-    <div class="col-md-4">
-        <h2>Getting started</h2>
-        <p>
-            ASP.NET MVC gives you a powerful, patterns-based way to build dynamic websites that
-            enables a clean separation of concerns and gives you full control over markup
-            for enjoyable, agile development.
-        </p>
-        <p><a class="btn btn-default" href="https://go.microsoft.com/fwlink/?LinkId=301865">Learn more &raquo;</a></p>
-    </div>
-    <div class="col-md-4">
-        <h2>Get more libraries</h2>
-        <p>NuGet is a free Visual Studio extension that makes it easy to add, remove, and update libraries and tools in Visual Studio projects.</p>
-        <p><a class="btn btn-default" href="https://go.microsoft.com/fwlink/?LinkId=301866">Learn more &raquo;</a></p>
-    </div>
-    <div class="col-md-4">
-        <h2>Web Hosting</h2>
-        <p>You can easily find a web hosting company that offers the right mix of features and price for your applications.</p>
-        <p><a class="btn btn-default" href="https://go.microsoft.com/fwlink/?LinkId=301867">Learn more &raquo;</a></p>
-    </div>
-</div>
+
+@section scripts
+{
+<script type="text/javascript">
+
+    $(window).ready(function () {
+        //что бы не отображать стандартный плеер до загрузки, скрываем его нас транице и после прогрузки отображаем
+        $(".audio-player").show();
+        //https://s-sd.ru/blog_studio_design/audiopleer_dlya_sajta_na_jquery_i_css3/
+        $('#audio-player').mediaelementplayer({
+            alwaysShowControls: true,
+            features: ['playpause', 'volume'],
+            audioVolume: 'horizontal',
+            audioWidth: 100,
+            audioHeight: 50
+        });
+
+        //Всплывающее меню
+        //$(".radioplayer").myTooltip({
+        //    offset: 15,
+        //    //hideTime: 3000,
+        //    content: 'Внимание! для коректной работы радио "ТРК Алмазный Край"'+
+        //    ' у Вас должен быть правильно нстроен прокси-сервер! Подробнее <a href= "/Rules/radio.pdf"  target= "_blank" > тут</a > ',
+        //    direction: 'bottom',
+        //    animateOffsetPx: 1000, //animateDuration
+        //    action: 'hover', //action:'hover', action:'click'
+        //    customClass: 'my-tooltip', //my-tooltip - это класс с закруглёнными краями
+        //    disposable: true
+        //});
+
+        //Статистика по кликам на радио
+        $(".mejs-play").click(function () {
+            if ($(this).hasClass("mejs-play")) {
+                $.post("@Url.Action("StatisticsRadioClick")?ip=@Request.UserHostAddress")
+            }
+
+        })
+        
+        //Определение версии браузера https://github.com/pupunzi/jquery.mb.browser/blob/master/inc/jquery.mb.browser.js
+        //var nAgt = navigator.userAgent;
+        //if (nAgt.indexOf("MSIE") != -1)
+        //{
+        //    var verOffset = navigator.userAgent.indexOf("MSIE");
+        //    alert(verOffset);
+        //}
+
+
+
+    });
+
+
+</script>
+}

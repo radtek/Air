@@ -1,0 +1,590 @@
+﻿@model IEnumerable<AirFlight.Models.Flight>
+@using Microsoft.AspNet.Identity;
+
+@{
+    ViewBag.Title = "Выбор рейса";
+}
+@{ 
+    List<int> countp = new List<int>();
+    foreach (var i in ViewBag.registrationlist)
+    { countp.Add(i); }
+ }
+<div id="res">
+    <input style="display:none" id="user" value="@User.Identity.GetUserId()">
+    @* данное поле необходимо для определения типа регистрации открыта или закрыта при нажатии правой кнопкой мышы*@
+    <input style="display:none" id="approv" value=""> 
+        <div id="search-block-form" style="position:absolute; right:120px;top:70px;overflow:no-display">
+            <input style="display:none" id="idpass" value="@ViewBag.findpassenger">                
+            <div class="form-item">
+                <input type="text" id="findpass" value="@ViewBag.findepassenger" placeholder="Поиск пассажира...">
+            </div>
+            <div class="form-actions">
+                <input type="button" id="find" value="Поиск" class="form-submit">
+            </div>
+        </div>
+    <h4>&nbsp;</h4>
+    <h3 style="text-align:center"> Доступные рейсы для регистрации</h3>  
+    @if (@ViewBag.ChoosDate == 0) { ViewBag.ColorR = "mediumblue"; } else { ViewBag.ColorR = ""; }
+    @if (@ViewBag.ChoosDate == 1) { ViewBag.ColorD = "mediumblue"; } else { ViewBag.ColorD = ""; }
+    <h4 style="text-align:center">
+        Выберите период с
+        <ins id="ViewDateStart" style="color:@ViewBag.ColorR"><input id="StartDate" type="text" style="text-align:center; width:1pt;visibility:hidden" value="@ViewBag.SD" name="StartDate" />@ViewBag.StartDate</ins>
+        по <ins id="ViewDateEnd" style="color:@ViewBag.ColorR"><input id="EndDate" type="text" style="text-align:center; width:1pt;visibility:hidden" value="@ViewBag.ED" name="EndDate" />@ViewBag.EndDate</ins>
+        Или укажите дату вылета <ins id="ViewCurrentDate" style="color:@ViewBag.ColorD"><input id="CurrentDate" type="text" style="text-align:center; width:1pt;visibility:hidden" value="@ViewBag.CD" name="CurrentDate" />@ViewBag.CurrentDate</ins>
+        <input id="ChoosDate" type="text" style="text-align:center; width:1pt;visibility:hidden" value="@ViewBag.ChoosDate" name="ChoosDate" />
+    </h4>
+    <h4 style="text-align:center">
+        Укажите направление вылета: @Html.DropDownList("selectRoute", new List<SelectListItem>() {
+        new SelectListItem { Text = "Все направления", Value = "0"},
+        new SelectListItem { Text = "Мирный-Накын",  Value = "1"},
+        new SelectListItem { Text = "Накын-Мирный",  Value = "2"},
+        new SelectListItem { Text = "Нюрба-Накын",   Value = "3"},
+        new SelectListItem { Text = "Накын-Нюрба",   Value = "4"},
+        new SelectListItem { Text = "Вилюйск-Накын", Value = "5" },
+        new SelectListItem { Text = "Накын-Вилюйск", Value = "6" },
+        new SelectListItem { Text = "Накын-Чукар", Value = "7" },
+        new SelectListItem { Text = "Чукар-Накын", Value = "8" },
+        new SelectListItem { Text = "Кюндядя-Накын", Value = "9" },
+        new SelectListItem { Text = "Накын-Кюндядя", Value = "10" },
+        new SelectListItem { Text = "Малыкай-Накын", Value = "11" },
+        new SelectListItem { Text = "Накын-Малыкай", Value = "12" } },         
+        new { @style = "selected:false; border:none", @class="ddl"})
+    </h4>
+
+    <table align="center" class="table  table-hover" style="text-align:center;width:1600px">
+        <tr class="grad-grey-table">
+            <th style="display:none"></th>
+            <th style="text-align:center;width:3.5cm">Время вылета</th>
+            <th style="text-align:center;width:2.5cm">№ рейса</th>
+            <th style="text-align:center;width:3.5cm">От куда</th>
+            <th style="text-align:center;width:4cm">Куда</th>
+            <th style="text-align:center;width:4cm">Тип В/С</th>
+            <th style="text-align:center;width:4cm">Регистрация</th>
+            <th style="text-align:center;width:3cm">Всего</th>
+            <th style="text-align:center;width:2cm"><img class="sms-info" style="cursor:help" src="~/Image/sms-info.png" /></th>
+            <th style="text-align:center">Примечание</th>           
+            <th style="text-align:center">Действия</th>
+        </tr>
+
+        @foreach (var day in Model.Select(d => d.FlightDate).Distinct())
+        {
+            /*Строка с названием дня недели*/
+            <tr>
+                <td colspan="10" style="font-size:14pt;font-style:italic;font-family:'Segoe Print';padding:1px" class="grad">
+                    <b>@day.ToString("dddd"), @day.ToString("D")</b>
+                </td>
+            </tr>
+
+            foreach (var item in Model.Where(f => f.FlightDate == day).OrderByDescending(f => f.Departure == "Мирный" && f.Arrival == "Накын")
+                    .ThenByDescending(f => f.Departure == "Накын" && f.Arrival == "Мирный").ThenByDescending(f => f.Departure == "Нюрба" && f.Arrival == "Накын")
+                    .ThenByDescending(f => f.Departure == "Накын" && f.Arrival == "Нюрба").ThenByDescending(f => f.Departure == "Накын" && f.Arrival == "Вилюйск")
+                    .ThenByDescending(f => f.Departure == "Вилюйск" && f.Arrival == "Накын").ThenBy(f => f.FlightNum))
+            {
+                //определяыем цвет строки
+                switch (item.Approved.Trim())
+                {
+                    case "Открыта":
+                        ViewBag.Color = "pusto";
+                        break;
+                    case "Ограничена":
+                        ViewBag.Color = "info";
+                        break;
+                    case "Приостановлена":
+                        ViewBag.Color = "danger";
+                        break;
+                    case "Закрыта":
+                        ViewBag.Color = "warning";
+                        break;
+                    case "В архиве":
+                        ViewBag.Color = "grad-archive";
+                        break;
+                }
+
+                <tr style="text-align:center" class=@ViewBag.Color>
+                    <td style="display:none">@Html.DisplayFor(model => item.id)</td>
+                    <td style="width:3.5cm">
+                        @Html.DisplayFor(modelItem => item.FlightTime).ToString().Substring(0, 5)
+                    </td>
+                    <td>@Html.DisplayFor(modelItem => item.FlightNum)</td>
+                    <td>@Html.DisplayFor(modelItem => item.Departure)</td>
+                    <td>@Html.DisplayFor(modelItem => item.Arrival)</td>
+                    <td>@Html.DisplayFor(modelItem => item.AirType)</td>
+                    <td>@Html.DisplayFor(modelItem => item.Approved)</td>
+                    <td style="color:@(item.Number - countp.Count(p => p == item.id) < 0 ? "chocolate" : "black")">@(ViewBag.countp = countp.Count(p => p == item.id) + " из " + Html.DisplayFor(modelItem => item.Number))</td> @*Считаем количество пассажиров на рейсе*@
+                   @if (item.Approved == "Закрыта" || item.Approved == "В архиве")
+                   {
+                       if (countp.Count(p => p == item.id) == 0)
+                       {
+                        <td style="text-align:center;width:1cm"><img style="cursor:help" class="sms-nulllist" src="~/Image/sms-nulllist.png" /></td>
+                       }
+                       else
+                       {
+                           switch (item.SendingSms)
+                           {
+                               case null:
+                                   if (item.FlightDate <= DateTime.Now.Date)
+                                   {
+                                    <td style="text-align:center;width:1cm"><img style="cursor:help" class="sms-notsend" src="~/Image/sms-notsend.png" ) /></td>
+                                   }
+                                   else
+                                   {
+                                    <td style="text-align:center;width:1cm"><img style="cursor:help" class="sms-wait" src="~/Image/sms-wait.png" ) /></td>
+                                   }
+                                   break;
+                               case false:
+                                <td style="text-align:center;width:1cm"><img style="cursor:help" class="sms-notsend" src="~/Image/sms-notsend.png" /></td>
+                                   break;
+                               case true:
+                                <td style="text-align:center;width:1cm"><img style="cursor:help" class="sms-send" src="~/Image/sms-send.png" /></td>
+                                   break;
+                           }
+                       }
+                   }
+                   else
+                   {
+                       if (ViewBag.Notification.Contains(item.id))
+                       {// class="bell" необходим для определения наличия в поле значения
+                        <td class="bell"><i style="cursor:help;color:#0094ff;" class="glyphicon glyphicon-bell InfoNotif" aria-hidden="true"></i></td>
+                       }
+                       else
+                       {
+                        <td class="nobell"></td>
+                       }
+                   }
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Note)
+                    </td>                   
+                    <td style="text-align:center">
+                        @{//Проверяем разрешение добавлять пользователем пассажиров в указанном направлении (в Накын или из Накына)
+                            string DepartureRole = "из " + item.Departure;
+                            string ArrivalRole = "в " + item.Arrival;
+                            if (User.IsInRole(DepartureRole) || User.IsInRole(ArrivalRole))
+                            {
+                                switch (item.Approved)
+                                {
+                                    case "Ограничена":
+                                        //проверяем разрешение добавлять пассажиров в данный день или есть ли роль у пользователя добавлять в любой день
+                                        if (Request.IsAuthenticated && User.IsInRole("allday") || User.IsInRole(item.FlightDate.ToString("dddd")))
+                                        {
+                                            @Html.ActionLink("Выбрать", "Registration", new { FlightID = item.id })
+                                        }
+                                        else
+                                        {
+                                            @Html.ActionLink("Посмотреть", "Registration", new { FlightID = item.id })
+                                        }
+                                        break;
+                                    case "Открыта":
+                                        @Html.ActionLink("Выбрать", "Registration", new { FlightID = item.id })
+                                        break;
+                                    case "В архиве":
+                                        if (Request.IsAuthenticated && User.IsInRole("viewpdf"))
+                                        {
+                                          @Html.ActionLink("Посмотреть", "Registration", new { FlightID = item.id }, new { @class = "choose" })
+                                          <a>|</a>
+                                          @Html.ActionLink("Открыть pdf", "ShowFiles","Flights", new { FlightID = item.id }, new { @class = "showfiles", target = "_blank" })
+                                        }
+                                        else
+                                        {
+                                           @Html.ActionLink("Посмотреть", "Registration", new { FlightID = item.id })
+                                        }
+                                        break;
+                                    default:
+                                        @Html.ActionLink("Посмотреть", "Registration", new { FlightID = item.id })
+                                        break;
+                                }
+                            }
+                            //если разрешений нет (добавление рейсов в накын или из накына) то  отображаем ему ссылки посмотреть или если есть роль просмотра pdf
+                            //то отображаем две ссылки
+                            else
+                            {
+                                if (item.Approved == "В архиве")
+                                {
+                                    @Html.ActionLink("Посмотреть", "Registration", new { FlightID = item.id }, new { @class = "choose" })
+                                    <a>|</a>
+                                    @Html.ActionLink("Открыть pdf", "ShowFiles", new { FlightID = item.id }, new { @class = "showfiles", target = "_blank" })
+                                }
+                                else
+                                {
+                                    @Html.ActionLink("Посмотреть", "Registration", new { FlightID = item.id })
+                                }
+                            }
+                      }
+                        </td>
+                </tr>
+            }
+        }
+    </table>
+</div>
+
+@section scripts
+        {
+    <script type="text/javascript">
+        $(window).ready(function () {
+            //запрещаем браузеру кэшировать данные AJAX
+            $.ajaxSetup({ cache: false });
+            //Так как дерево DOM будет динамически загружено, то нам необходимо удалить все объекты Datapicker, иначе не он будет работать при загрузке страницы
+            $("#ui-datepicker-div").remove();
+            //Для того что бы активировать DropDown menu обновляем его
+            $(".dropdown-toggle").dropdown();
+        });
+
+        //так как мы динмически подгружаем таблицу и всю страницу, а котекстное меню срабатывает при нажатии правой кнопки мышки на элементе td в статически прогруженном коде,
+        //то после обновления страницы контекстное меню перестаёт работать так как таблица в DOM дерево было прогружена динамически, а контекстное меню при этом
+        //осталось привязанным к статическому объекту, то мы при любом ajax обновлении страницы разрушаем ранее созданное contexMenu()
+        $(document).ajaxSend(function () {
+            $.contextMenu('destroy');
+        });
+
+        $(function () {
+
+            //$(window).resize(function () {
+            //var pos = $(window).width();
+            //$("#position").val(pos);
+            //});
+            //Datapicker showOtherMonths: true - отображать дни предыдущего месяца, selectOtherMonths: true - возможность их выбирать иначе они будут не активными
+            $("#ViewDateStart").click(function () {
+                $("#ChoosDate").val(0);
+                $("#StartDate").datepicker({ showOtherMonths: true, selectOtherMonths: true, dateFormat: "yy-mm-dd", showAnim: "puff" }).datepicker("show")
+            });
+
+            $("#ViewDateEnd").click(function () {
+                $("#ChoosDate").val(0);
+                $("#EndDate").datepicker({ showOtherMonths: true, selectOtherMonths: true, dateFormat: "yy-mm-dd", showAnim: "puff" }).datepicker("show")
+            });
+
+            $("#ViewCurrentDate").click(function () {
+                $("#ChoosDate").val(1);
+                $("#CurrentDate").datepicker({ showOtherMonths: true, selectOtherMonths: true, dateFormat: "yy-mm-dd", showAnim: "puff" }).datepicker("show")
+            });
+
+            //отправка значений в контроллер при изменении даты
+            $("#StartDate, #EndDate, #CurrentDate").change(function () {
+                var url = "@Url.Action("Start")?StartDate=" + $("#StartDate").val() + "&EndDate=" + $("#EndDate").val() + "&CurrentDate=" + $("#CurrentDate").val() + "&ChoosDate=" + $("#ChoosDate").val();
+                $(".footer").hide();
+                setTimeout(function () {
+                    $("#res").load(url);
+                },200)
+               
+            });
+
+            //Выбор направления вылета
+            $("#selectRoute").change(function () {
+                var url = "@Url.Action("Start")";
+                var data = {
+                    selectRoute: $("#selectRoute").val()
+                };
+                $(".footer").hide();
+                $("#res").load(url, data);
+            });            
+
+            //********************Поиск пассажира*****************************************/////
+            $("#findpass").autocomplete({
+                source: '@Url.Action("AutocompleteFindPassenger")',
+                select: function (event, ui) {
+                    $("#idpass").val(ui.item.id);
+                    var url = "@Url.Action("Start")";
+                    $(".footer").hide();
+                    $("#res").load(url, { findpassenger: $("#idpass").val() });
+                },
+            });
+
+            //Поиск при клике на значке лупы
+            $("#find").click(function () {
+                var url = "@Url.Action("Start")";
+                var data = {
+                    findpassenger: $("#idpass").val()
+                };
+                $(".footer").hide();
+                $("#res").load(url, data);
+            });
+             //отправляем значения idpass в контроллер при потере фокуса
+            $("#findpass").focusout(function () {               
+                if ($("#findpass").val().length === 0) {                
+                    var url = "@Url.Action("Start")";
+                    var data = {
+                        findpassenger: $("#idpass").val()
+                    };
+                    $(".footer").hide();
+                    $("#res").load(url, data);
+                }
+            });
+
+            $("#findpass").myTooltip({
+                offset: 15,
+                content: 'Введите первые буквы фамилии. Для отмены поиска очистите данное поле',
+                direction: 'bottom',
+                animateOffsetPx: 50, //animateDuration
+                action: 'hover', //action:'hover', action:'click'
+                customClass: 'my-tooltip', //my-tooltip - это класс с закруглёнными краями
+                disposable: true
+            });
+
+            //очищаем поле поиска при нажатии на клавишу 8-backspace, 46 - del,
+            $("#findpass").keyup(function (e) {             
+                if ($("#idpass").val() !== "0") {                 
+                    if (e.keyCode == 8 || e.keyCode == 46) {                    
+                        $("#idpass").val(0)
+                        $("#findpass").val("");
+                    }
+                }
+             })       
+             
+
+////*****************Конец блока поиска пассжира*************///////////////////
+
+                //************контекстное меню**************//////////
+            //https://swisnl.github.io/jQuery-contextMenu/docs.html
+            //Определяем заголовок всплывающего меню при нажатии правой кнопки мыши. Сам класс описан в jquery.contextMenu.css
+
+            $('td').mousedown(function (event) {
+                //проверяем нажатие правой кнопкой мышки
+                if (event.button === 2) {
+                    notificat();
+                    var hendl = "Рейс №" + $(this).parents("tr").find('td:eq(2)').text() + ", " + $(this).parents("tr").find('td:eq(3)').text() + " - " + $(this).parents("tr").find('td:eq(4)').text();
+                    $('.data-title').attr('data-menutitle', hendl);
+                }
+             });
+            
+//////************************меню уведомить меня*****************************//////////////////////////////
+
+            function notificat() {
+                $.contextMenu({
+                    selector: 'td',
+                    className: 'data-title',
+                    autoHide: true,
+                    items: {
+                        "spar1": "-----------",
+                        addnotific: {
+                            name: "Уведомить меня об открытии регистрации",
+                            icon: "edit",
+                            disabled: function (key, opt) {
+                                //Делаем не доступным меню выбор, если регистрация не ограничена
+                                if ($(this).parents("tr").find('td:eq(6)').text().trim() !== "Ограничена") {
+                                    return true;
+                                }
+                            },//disable
+                            visible: function (key, opt) {
+                                if ($(this).parents("tr").find('td:eq(8)').is(".nobell"))  {
+                                    return true;
+                                }
+                            }//visible
+                        }, //addnotific
+
+                        delnotification: {
+                            name: "Не получать уведомление",
+                            icon: "edit",
+                            visible: function (key, opt) {
+                                if ($(this).parents("tr").find('td:eq(8)').is(".bell")) {
+                                    return true;
+                                }
+                            }//visible
+                        }// delnotification
+                    },//items
+                    callback: function (key, options) {
+                        if (key == "delnotification") {
+                        var urlnotific = "@Url.Action("NotificationsDel")";
+                        var url = "@Url.Action("Start")";
+                        var data = {
+                            FlightId: $(this).parents("tr").find('td:eq(0)').text()
+                        };
+                        $(".footer").hide();
+                        $.post(urlnotific, data, function (result) {
+                            if (result != "Ok") {
+                                alert(result);
+                                $("#res").load(url);
+                            }
+                            else {
+                                setTimeout(function () {
+                                    $("#res").load(url);
+                                }, 300)
+                            }//else
+                        });//post
+                    }//if callback
+                        else {
+                            var urlnotific = "@Url.Action("NotificationsAdd")";
+                            var url = "@Url.Action("Start")";
+                            var data = {
+                                AspNetUserID: $("#user").val(),
+                                FlightId: $(this).parents("tr").find('td:eq(0)').text()
+                            };
+                            $(".footer").hide();
+                            $.post(urlnotific, data, function (result) {
+                                if (result != "Ok") {
+                                    if (result == "NoEmail") {
+                                        confirmemail(data);
+                                    }
+                                    else {
+                                        alert(result);
+                                        $("#res").load(url);
+                                    }
+                                }
+                                else {
+                                    //$.alert({
+                                    //    type: 'orange',
+                                    //    theme: 'dark',
+                                    //    title: "Успешно",
+                                    //    content:"Уведомление включено"
+                                    //})
+                                    setTimeout(function () {
+                                        $("#res").load(url);
+                                    }, 300)
+                                }//else post
+                            });//post
+                        }//else callback
+                     },//callback
+                });//contextmenu
+            };//notification
+
+            //***************************///////
+            //Функция вызова при заполнени email
+            function confirmemail(data) {
+                $.confirm({
+                    title: 'Внимание!',
+                    type: 'orange',
+                    theme: 'dark',
+                    content: '' +
+                    '<form action="" class="formName">' +
+                    '<div class="form-group">' +
+                    '<h4>У Вас не заполнен Email для получения уведомлений.</h4>' +
+                    '<h4>Введите Email для получения уведомлений</h4>' +
+                    '<input type="text" placeholder="Email@alrosa.ru" class="name form-control" required />' +
+                    '<h5>Email для получения уведомлений можно так же изменить в личном кабинете</h5>' +
+                    '</div>' +
+                    '</form>',
+                    buttons: {
+                        formSubmit: {
+                            text: 'Сохранить',
+                            btnClass: 'btn-orange', //btn-orange, btn-blue
+                            action: function () {
+                                //присваиваем переменной name значение из поля ввод email 
+                                var name = this.$content.find('.name').val();
+                                //если email введён не корректно, то сообщаем об этом
+                                if (!name || name.toLowerCase().indexOf("@@alrosa.ru") === -1) {
+                                    $.alert({
+                                        type: 'orange',
+                                        theme: 'dark',
+                                        title: 'Внимание!',
+                                        content: 'Введён не корректный Email!'
+                                    });
+                                    return false;
+                                }
+                                else
+                                {                                     
+                                    $.post("@Url.Action("SaveEmailSend", "Manage")", { Emil: name }, function (result) {
+                                        if (result != "Ok") {
+                                            alert(result);
+                                        }
+                                        else {
+                                             $(".footer").hide();
+                                             $.post("@Url.Action("NotificationsAdd")", data, function (result) {
+                                                 if (result != "Ok") {
+                                                     alert(result);
+                                                 }
+                                                else {
+                                                setTimeout(function () {
+                                                    $("#res").load("@Url.Action("Start")");
+                                                }, 300)}//else
+                                             });//post
+                                        }//else
+                                    });//post
+                                }//else
+                            }//function()
+                        },
+                        cancel: {
+                            text: 'Отмена',
+                            action:
+                             function () {
+                                 $("#res").load("@Url.Action("Start")");
+                            }
+                        },
+                    },
+                    onContentReady: function () {
+                        // bind to events
+                        var jc = this;
+                        this.$content.find('form').on('submit', function (e) {
+                            // if the user submits the form by pressing enter in the field.
+                            e.preventDefault();
+                            jc.$$formSubmit.trigger('click'); // reference the button and click it
+                        });
+                    }
+                });
+            };//  function confirmemail()
+
+            //Всплывающее меню на колокольчике в заголовке таблицы
+            $("#InfoBell").myTooltip({
+                offset: 15,
+                //theme: 'warning',
+                content: 'Информация о включении уведомлений на рейс',
+                direction: 'right',
+                animateOffsetPx: 100, //animateDuration
+                action: 'hover', //action:'hover', action:'click'
+                customClass: 'my-tooltip', //my-tooltip - это класс с закруглёнными краями                
+            });
+
+            //Всплывающее окно при клике на колокольчике в самой таблице
+            $(".InfoNotif").myTooltip({
+                offset: 15,
+                //theme: 'warning',
+                content: 'Уведомление об открытии регистрации включено',
+                direction: 'right',
+                animateOffsetPx: 100, //animateDuration
+                action: 'click', //action:'hover', action:'click'
+                customClass: 'my-tooltip', //my-tooltip - это класс с закруглёнными краями
+                disposable: true
+            });
+            //Всплывающее меню на конверте
+            $(".sms-info").myTooltip({
+                offset: 15,
+                hideTime: 3000,
+                content: 'Информация и уведомления о рейсах',
+                direction: 'right',
+                action: 'click', //action:'hover', action:'click'
+                customClass: 'my-tooltip', //my-tooltip - это класс с закруглёнными краями                
+            });
+            //Всплывающее меню 
+            $(".sms-send").myTooltip({
+                offset: 15,
+                content: 'Смс уведомление отправлено',
+                direction: 'right',
+                hideTime: 3000,
+                animateOffsetPx: 100, //animateDuration
+                action: 'click', //action:'hover', action:'click'
+                customClass: 'my-tooltip', //my-tooltip - это класс с закруглёнными краями                
+            });
+            //Всплывающее меню 
+            $(".sms-notsend").myTooltip({
+                offset: 15,
+                hideTime: 3000,
+                content: 'При отправке смс возникли проблемы или не все пользователи получили смс',
+                direction: 'right',
+                animateOffsetPx: 100, //animateDuration
+                action: 'click', //action:'hover', action:'click'
+                customClass: 'my-tooltip', //my-tooltip - это класс с закруглёнными краями                
+            });
+            //Всплывающее меню 
+            $(".sms-wait").myTooltip({
+                offset: 15,
+                hideTime: 3000,
+                content: 'Уведомление ожидает отправки<br>(за 2 дня до вылета)',
+                direction: 'right',
+                animateOffsetPx: 100, //animateDuration
+                action: 'click', //action:'hover', action:'click'
+                customClass: 'my-tooltip', //my-tooltip - это класс с закруглёнными краями                
+            });
+            //Всплывающее меню
+            $(".sms-nulllist").myTooltip({
+                offset: 15,
+                hideTime: 3000,
+                content: 'Нет пассажиров для отправки',
+                direction: 'right',
+                animateOffsetPx: 100, //animateDuration
+                action: 'click', //action:'hover', action:'click'
+                customClass: 'my-tooltip', //my-tooltip - это класс с закруглёнными краями                
+            });
+            
+
+    });//function
+
+    </script>
+}
+

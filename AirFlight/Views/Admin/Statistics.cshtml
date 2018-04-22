@@ -1,0 +1,93 @@
+﻿@model IEnumerable<AirFlight.Models.RegistrationList>
+@using AirFlight.Models
+
+@{
+    ViewBag.Title = "Администрирование";
+}
+<div id="statistic">
+    
+</div>
+ <h3 style="text-align:center">Статистика системы</h3>
+<h4 style="text-align:center">Ведётся с 12 сентября 2017 года</h4>
+       
+        @{
+            using (AirFlightContext db = new AirFlightContext())
+            {
+                DateTime DayNow = DateTime.Now.Date;               
+                var fly = db.Flights.Where(k => k.FlightDate <= DayNow);               
+                <h4>Выполнено рейсов: @fly.Count()</h4>
+                <h4>Перевезено пассажиров: @Model.Where(d => d.Flight.FlightDate <= DayNow).Count()</h4>
+                <h5 style="margin-bottom:1px"><b>Из них:</b></h5>                                  
+                foreach (var p in fly.Select(f => new { f.Departure, f.Arrival }).Distinct().OrderByDescending(f => f.Departure == "Мирный" && f.Arrival == "Накын")
+                .ThenByDescending(f => f.Departure == "Накын" && f.Arrival == "Мирный").ThenByDescending(f => f.Departure == "Нюрба" && f.Arrival == "Накын")
+                .ThenByDescending(f => f.Departure == "Накын" && f.Arrival == "Нюрба").ThenByDescending(f => f.Departure == "Накын" && f.Arrival == "Вилюйск")
+                .ThenByDescending(f => f.Departure == "Вилюйск" && f.Arrival == "Накын"))
+                {
+                    <table>
+                        <tr>
+                            <td style="width:3.3cm">
+                                @p.Departure - @p.Arrival: 
+                            </td>
+                            <td style="width:1cm; text-align:center">
+                                @fly.Where(c => c.Departure == p.Departure && c.Arrival == p.Arrival).Count(),
+                            </td>
+                            <td style="width:4.5cm">
+                                перевезено пассажиров:
+                            </td>
+                            <td>
+                                @Model.Where(f => f.Flight.Departure == p.Departure && f.Flight.Arrival == p.Arrival && f.Flight.FlightDate <= DayNow).Count()
+                            </td>
+                        </tr>
+                    </table>
+                }
+
+                <br />
+                <h4>Остаток смс составляет: <ins id="balance"></ins><a href="https://www.mcommunicator.ru/login/Messages.aspx?login=79142518694&password=3b4e5b2d9297880bf800e4260e6db603" target="_blank"> Подробнее на МТС Коммуникатор</a></h4>              
+                <h4>Всего выполнено оповещений по смс: @Model.Where(s=>s.SendingSms==true).Count()</h4>             
+                <h5><input id="Month" type="text" style="text-align:center; width:1pt;visibility:hidden" value="@ViewBag.date" name="Month" />
+                 <ins id="ViewMonth" style="cursor:pointer">@ViewBag.month</ins></h5>
+                <h5><input id="Day" type="text" style="text-align:center; width:1pt;visibility:hidden" value="@ViewBag.day" name="Day" />
+                    <ins id="ViewDay" style="cursor:pointer">@ViewBag.daysms</ins>
+                </h5>              
+            }
+        }
+              
+ @section scripts
+{
+   <script type="text/javascript">
+       $(window).ready(function () {
+           $.ajaxSetup({ cache: false });
+           $("#ui-datepicker-div").remove();
+           $(".dropdown-toggle").dropdown();
+           $.get("@Url.Action("Balance")").done(function (balance) {
+               $("#balance").text(balance);
+           });
+       });
+
+       $(function () {
+           $("#ViewMonth").on('click', function () {
+               $("#Month").datepicker({showOtherMonths: true, selectOtherMonths: true, dateFormat: "yy-mm-dd", showAnim: "puff"}).datepicker("show");              
+               //$(".ui-datepicker-calendar").hide(); https://stackoverflow.com/questions/2208480/jquery-ui-datepicker-to-show-month-year-only
+           });
+    
+           $("#ViewDay").on('click', function () {
+               $("#Day").datepicker({ showOtherMonths: true, selectOtherMonths: true, dateFormat: "yy-mm-dd", showAnim: "puff" }).datepicker("show");
+           });
+
+           $("#Month").change(function () {
+               var url = "@Url.Action("Statistics")?data=" + $("#Month").val();
+               $.get(url).done(function (sms) {
+                   $("#ViewMonth").text(sms.m);                  
+             });
+           });
+            $("#Day").change(function () {
+             var url = "@Url.Action("Statistics")?day=" + $("#Day").val();
+             $.get(url).done(function (sms) {                
+                   $("#ViewDay").text(sms.d);
+           });
+           });
+
+       });
+
+ </script>
+ }

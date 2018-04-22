@@ -1,0 +1,383 @@
+﻿@model IEnumerable<AirFlight.Models.Template>
+@using Microsoft.AspNet.Identity;
+@{
+    ViewBag.Title = "Шаблоны рейсов";
+}
+    <div id="Templates">
+    <input type="number" style="display:none" id="NumTab" value="@ViewBag.NumTab" />
+    <input style="display:none" id="user" value="@User.Identity.GetUserId()">
+    <h3 style="text-align:center">Настройка шаблонов регистрации рейсов</h3>
+    <br />
+    <style>
+        .nav-tabs > li {
+            float: none;
+            display: inline-block;
+        }
+    </style>
+        
+    <ul class="nav nav-tabs" role="tablist" id="tabsday" style="text-align:center;margin:auto;width:1200px">
+        @foreach (var href in ViewBag.NameTabTmpl)
+        {
+            if (href == null)
+            {
+                break;
+            }
+            else
+            {
+                if (ViewBag.edittmpl == 1 && ViewBag.NumTab == href.Num)
+                {
+                    <li class="nav-item"><p><a data-toggle="tab" class="nav-link" href="#@href.Num" role="tab" onclick="return false"></a><input type="text" size="10" id="DescrTmplName" value="@href.Description" style="border:none;" /></p></li>
+                }
+                else
+                {
+                <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#@href.Num" role="tab">@href.Description</a></li> 
+                }
+            }
+        }
+
+        <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#0" role="tab">Добавить шаблон</a></li>
+        </ul>
+
+        <div class="tab-content" id="tabs" style="width:1200px;margin:auto">
+           
+            <!-- Содержимое TAB панелей -->
+            @foreach (var tmpl in ViewBag.NameTabTmpl)
+            {
+            <div class="tab-pane fade" id="@tmpl.Num" role="tabpanel">
+               <br />
+                @{if (ViewBag.edittmpl == 1 && ViewBag.NumTab == tmpl.Num)
+                    {
+                        <p style="float:right">
+                            @Html.ActionLink("Отменить", "Templates", new { edittmpl = 0 }, new { @class = "CancelTmplName", onclick = "return false" }) |
+                            @Html.ActionLink("Сохранить", "SaveTmplName", new { id = tmpl.Id }, new { @class = "SaveTmplName", onclick = "return false" })
+                        </p>
+                    }
+                    else
+                    {
+                        <p style="float:right">
+                            @Html.ActionLink("Удалить шаблон", "DelTmplName", new { id = tmpl.Id }, new { @class = "DelTmplName", onclick = "return false" }) |
+                            @Html.ActionLink("Изменить имя шаблона", "Templates", new { edittmpl = 1 }, new { @class = "EditTmplName", onclick = "return false" })
+                        </p>
+                    }
+                }
+                <br />
+                <br />
+
+                <table class="table  table-hover" style="text-align:center">
+                    <tr class="grad-grey-table">
+                        <th style="text-align:center;width:3cm">Время</th>
+                        <th style="text-align:center;width:3cm">№ рейса</th>
+                        <th style="text-align:center">От куда</th>
+                        <th style="text-align:center">Куда</th>
+                        <th style="text-align:center">Тип в/c</th>
+                        <th style="text-align:center">Регистрация</th>
+                        <th style="text-align:center;width:2cm">Всего</th>
+                        <th style="text-align:right;padding-right:20mm">Действия</th>
+                    </tr>
+
+                    @foreach (var item in Model.Where(d => d.Num == tmpl.Num).OrderByDescending(f => f.Departure == "Мирный" && f.Arrival == "Накын")
+                        .ThenByDescending(f => f.Departure == "Накын" && f.Arrival == "Мирный").ThenByDescending(f => f.Departure == "Нюрба" && f.Arrival == "Накын")
+                        .ThenByDescending(f => f.Departure == "Накын" && f.Arrival == "Нюрба").ThenByDescending(f => f.Departure == "Накын" && f.Arrival == "Вилюйск")
+                        .ThenByDescending(f => f.Departure == "Вилюйск" && f.Arrival == "Накын").ThenBy(f => f.FlightNum))
+                    {
+                        if (ViewBag.ID == item.Id)
+                        {
+                            <tr style="text-align:center">
+                                <td style="display:none"> @Html.EditorFor(model => item.Id, new { htmlAttributes = new { @class = "form-control" } })</td>
+                                <td><input type="text" style="text-align:center" class="form-control" id="item_FlightTime" value="@item.FlightTime.ToString().Substring(0, 5)" /></td>
+                                <td>@Html.DropDownListFor(model => item.FlightNum, new SelectList(new string[] { "1", "2", "3", "4" }, item.FlightNum.ToString()), new { @class = "form-control" })</td>
+                                <td>@Html.DropDownListFor(model => item.Departure, new SelectList(new string[] { "Мирный", "Накын", "Нюрба", "Вилюйск", "Чукар", "Кюндядя", "Малыкай" }, item.Departure.Trim()), new { @class = "form-control" })</td>
+                                <td>@Html.DropDownListFor(model => item.Arrival, new SelectList(new string[] { "Накын", "Мирный", "Нюрба", "Вилюйск", "Чукар", "Кюндядя", "Малыкай" }, item.Arrival.Trim()), new { @class = "form-control" }) </td>
+                                <td>@Html.DropDownListFor(model => item.AirType, new SelectList(new string[] { "Самолёт", "Вертолёт" }, item.AirType.Trim()), new { @class = "form-control" }) </td>
+                                <td>@Html.DropDownListFor(model => item.Approved, new SelectList(new string[] { "Открыта", "Ограничена", "Приостановлена" }, item.Approved.Trim()), new { @class = "form-control" }) </td>
+                                <td>@Html.EditorFor(model => item.Number, new { htmlAttributes = new { @class = "form-control" } })</td>
+                                <td style="text-align:right;padding-right:10mm">
+                                    @Html.ActionLink("Сохранить", "Templates", new { edit = 0 }, new { @class = "s_tmpl", onclick = "return false" }) |
+                                    @Html.ActionLink("Отменить", "Templates", new { edit = 0 }, new { @class = "c_tmpl", onclick = "return false" })
+                                </td>
+                            </tr>
+                        }
+                        else
+                        {
+                            <tr style="text-align:center">
+                                <td style="display:none">@Html.DisplayFor(model => item.Id)</td>
+                                <td>@Html.DisplayFor(modelItem => item.FlightTime).ToString().Substring(0, 5) </td>
+                                <td>@Html.DisplayFor(modelItem => item.FlightNum)</td>
+                                <td>@Html.DisplayFor(modelItem => item.Departure)</td>
+                                <td>@Html.DisplayFor(modelItem => item.Arrival)</td>
+                                <td>@Html.DisplayFor(modelItem => item.AirType)</td>
+                                <td>@Html.DisplayFor(modelItem => item.Approved)</td>
+                                <td>@Html.DisplayFor(modelItem => item.Number)</td>
+                                <td style="text-align:right;padding-right:10mm">
+                                    @Html.ActionLink("Изменить", "Templates", new { edit = 1, id = item.Id }, new { @class = "e_tmpl", onclick = "return false" }) |
+                                    @Html.ActionLink("Удалить", "DeleteTemplates", new { id = item.Id }, new { @class = "d_tmpl", onclick = "return false" })
+                                </td>
+                            </tr>
+                        }
+                    }
+                    @*Добавляем новый рейс*@
+                    @if (ViewBag.Create == 1 && ViewBag.NumTab == tmpl.Num)
+                    {
+                        <tr style="height:2px" class="grad">
+                            <td colspan="8"></td>
+                        </tr>
+                            <tr>
+                                <td>@Html.Editor("FlightTime", new { htmlAttributes = new { @class = "form-control" } })</td>
+                                <td>@Html.DropDownList("FlightNum", new SelectList(new string[] { "1", "2", "3", "4" }), new { @class = "form-control" })</td>
+                                <td>@Html.DropDownList("Departure", new SelectList(new string[] { "Мирный", "Накын", "Нюрба", "Вилюйск", "Чукар", "Кюндядя", "Малыкай" }), new { @class = "form-control" })</td>
+                                <td>@Html.DropDownList("Arrival", new SelectList(new string[] { "Накын", "Мирный", "Нюрба", "Вилюйск", "Чукар", "Кюндядя", "Малыкай" }), new { @class = "form-control" })</td>
+                                <td>@Html.DropDownList("AirType", new SelectList(new string[] { "Самолёт", "Вертолёт" }), new { @class = "form-control" })</td>
+                                <td>@Html.DropDownList("Approved", new SelectList(new string[] { "Ограничена", "Открыта", "Приостановлена" }), new { @class = "form-control" })</td>
+                                <td>@Html.Editor("Number", new { htmlAttributes = new { @class = "form-control", @Value = "22" } })</td>
+                                <td style="text-align:right;padding-right:20mm">@Html.ActionLink("Сохранить", "Templates", new { create = 0 }, new { @class = "sa_tmpl" })</td>
+                            </tr>
+                    }
+                </table>
+                <hr />              
+                  <p style="float:right">
+                    @{ if (ViewBag.Create == 1 && ViewBag.NumTab == tmpl.Num)
+                        { @Html.ActionLink("Отменить", "Templates", new { create = 0 }, new { @class = "ca_tmpl", onclick = "return false" }) }
+                        else
+                        { @Html.ActionLink("Добавить рейс", "Templates", new { create = 1 }, new { @class = "a_tmpl", onclick = "return false" }) }
+                    }
+                </p>
+                <br />
+                <br />               
+            </div>
+           }
+
+        <div class="tab-pane fade" id="0" role="tabpanel">
+            <br />
+            <input style="display:none" id="NumNameTmpl" value="@ViewBag.NameTabNum" />
+            <p>Введите название шаблона:</p> @Html.Editor("DescripTmpl", new { htmlAttributes = new { @class = "form-control" } })
+            <p style="text-align:right;padding-right:10mm">
+                @Html.ActionLink("Добавить шаблон", "AddTmplName", null, new { @class = "AddTmplName", onclick = "return false" })
+            </p>
+        </div>
+    </div>
+</div>
+
+
+@section scripts
+    {
+    <script type="text/javascript">
+
+        $(window).ready(function () {
+            $.ajaxSetup({ cache: false });
+            $("#ui-timepicker-div").remove();
+            $(".dropdown-toggle").dropdown();
+            $('#tabsday a[href=' + "\"#" + $("#NumTab").val() + "\"]").tab('show');
+
+        });
+
+        $(function () {
+            //При нажатии на вкладке отправляем её имя в контроллер для дальнейшего корректного отображения вкладки
+            $('#tabsday a').click(function () {
+                $("#NumTab").val($(this).attr('href').replace("#", ''))
+                var data = {
+                    NumTab: $(this).attr('href').replace("#", '')
+                }
+                $.post("@Url.Action("Templates")", data)
+                $("#ui-timepicker-div").remove();
+                $(".dropdown-toggle").dropdown();
+        });
+
+            //timepicker при создании и редактировании рейса
+            $("#FlightTime, #item_FlightTime").timepicker({
+                hourText: 'Часы',
+                minuteText: 'Минуты',
+                showPeriodLabels: false,
+            });
+
+            //добавляем новый шаблон
+            $(".AddTmplName").click(function (e) {
+                e.preventDefault();
+                if ($("#DescripTmpl").val() === "")
+                { alert("Введите название шаблона!"); return false; }
+                var url = "@Url.Action("Templates")?NumTab=" + $("#NumNameTmpl").val();
+                var urladd = $(this).attr('href');
+                var tmpl = {
+                    Num: $("#NumNameTmpl").val(),
+                    Description: $("#DescripTmpl").val(),
+                    UserId: $("#user").val()
+                }         
+                $(".footer").hide();
+                $.post(urladd, tmpl, function (result) {
+                    if (result != "Ok") {
+                        alert(result);
+                    }
+                    else {                        
+                        setTimeout(function () {
+                            $("#Templates").load(url).show()
+                        }, 300)
+                    }
+                });
+            });
+
+            //Удаляем шаблон
+            $(".DelTmplName").click(function (e) {
+            e.preventDefault();
+            var urldelete = $(this).attr('href');
+            var urltmpl = "@Url.Action("Templates")";
+            confirm('Удалить?') ?
+                $.post(urldelete).done(function (result) {
+                    if (result != "Ok") {
+                        alert(result)
+                    }
+                    else {
+                        setTimeout(function () {
+                            $(".footer").hide();
+                            $("#Templates").load(urltmpl).fadeIn(400)
+                        }, 400)
+                    }
+                }) : false;
+            });
+
+             //Редактирование шаблона
+            $(".EditTmplName").click(function (e) {
+                e.preventDefault;
+                var url = $(this).attr('href');              
+                $(".footer").hide();
+                $("#Templates").load(url);                       
+            });
+
+            //Отмена редактирования шаблона
+            $(".CancelTmplName").click(function (e) {
+                e.preventDefault();
+                var url = $(this).attr('href');
+                $(".footer").hide();
+                $("#Templates").load(url);
+            });
+
+
+            //Сохранение при изменении шаблона
+            $(".SaveTmplName").click(function (e) {
+                e.preventDefault();
+                if ($("#DescrTmplName").val() === "")
+                { alert("Введите название шаблона!"); return false; }
+                var urltmpl = "@Url.Action("Templates", new { edittmpl=0 })";
+                var urledit = $(this).attr('href'); 
+                var desr = {
+                    Description: $("#DescrTmplName").val()
+                }
+                $(".footer").hide();
+                $.post(urledit, desr).done(setTimeout(function () {
+                    $("#Templates").load(urltmpl).fadeIn(400)
+                }, 300));
+            });
+
+
+            //Отмена добавления рейса
+            $(".ca_tmpl").click(function (e) {
+                e.preventDefault();
+                var url = $(this).attr('href');
+                $(".footer").hide();
+                $("#Templates").load(url);
+            });
+
+            //Добавляем рейс
+            $(".a_tmpl").click(function (e) {
+                e.preventDefault();
+                var url = $(this).attr('href');
+                $(".footer").hide();
+                $("#Templates").load(url);
+
+            });
+
+           //Сохранение при добавлении рейса
+            $(".sa_tmpl").click(function (e) {
+                e.preventDefault();
+                if ($("#Departure").val() === $("#Arrival").val())
+                { alert("Не верно выбрано направление(от куда-куда )!"); return false; }
+                if ($("#FlightTime").val() === "")
+                { alert("Укажите время вылета!"); return false; }
+                if ($("#Number").val() === "")
+                { alert("Укажите количество пассажиров!"); return false; }
+
+                var urladd = "@Url.Action("AddTemplates")";
+                var urltmpl = $(this).attr('href');
+                var tmpl = {
+                    Num: $("#NumTab").val(),
+                    FlightTime: $("#FlightTime").val(),
+                    FlightNum: $("#FlightNum").val(),
+                    Departure: $("#Departure").val(),
+                    Arrival: $("#Arrival").val(),
+                    AirType: $("#AirType").val(),
+                    Approved: $("#Approved").val(),
+                    Number: $("#Number").val(),
+                    UserId : $("#user").val()
+                }
+                $(".footer").hide();
+                $.post(urladd, tmpl, function (result) {
+                    if (result != "Ok") {
+                        alert(result);
+                    }
+                    else {
+                        setTimeout(function () {
+                            $("#Templates").load(urltmpl).show()
+                        }, 300)
+                    }
+                });
+            });
+
+            //Изменение рейса
+            $(".e_tmpl").click(function (e) {
+                e.preventDefault;
+                var url = $(this).attr('href');
+                $(".footer").hide();
+                $("#Templates").load(url);
+            });
+
+            //Отмена изменения рейса
+            $(".c_tmpl").click(function (e) {
+                e.preventDefault();
+                var url = $(this).attr('href');
+                $(".footer").hide();
+                $("#Templates").load(url);
+            });
+
+            //Сохранение при изменении рейса
+            $(".s_tmpl").click(function (e) {
+                e.preventDefault();
+                if ($("#item_Departure").val() === $("#item_Arrival").val())
+                { alert("Не верно выбрано направление(от куда-куда )!"); return false; }
+                if ($("#item_FlightTime").val() === "")
+                { alert("Укажите время вылета!"); return false; }
+                if ($("#item_Number").val() === "" || $("#item_Number").val() === "0")
+                { alert("Укажите количество пассажиров!"); return false; }
+                var urledit = "@Url.Action("EditTemplates")";
+                var urltmpl = $(this).attr('href');
+                var tmpl = {
+                    id: $("#item_Id").val(),
+                    FlightTime: $("#item_FlightTime").val(),
+                    FlightNum: $("#item_FlightNum").val(),
+                    Departure: $("#item_Departure").val(),
+                    Arrival: $("#item_Arrival").val(),
+                    AirType: $("#item_AirType").val(),
+                    Approved: $("#item_Approved").val(),
+                    Number: $("#item_Number").val()
+                };
+                $(".footer").hide();
+                $.post(urledit, tmpl).done(setTimeout(function () {
+                    $("#Templates").load(urltmpl).fadeIn(400)
+                }, 400));
+            });
+
+            //удаление рейса
+            $(".d_tmpl").click(function (e) {
+                e.preventDefault();
+                var urldelete = $(this).attr('href');
+                var urltmpl = "@Url.Action("Templates")";
+                confirm('Удалить?') ?
+                    $.post(urldelete).done(setTimeout(function () {
+                        $(".footer").hide();
+                        $("#Templates").load(urltmpl).fadeIn(400)
+                    }, 400)) : false;
+            });
+
+
+
+        });
+
+</script>
+}

@@ -1,6 +1,6 @@
 ﻿body {
     padding-top: 50px;
-    padding-bottom: 20px;
+    padding-bottom: 50px;
 }
 
 /* Set padding to keep content from hitting the edges */
@@ -22,3 +22,195 @@ select,
 textarea {
     max-width: 280px;
 }
+
+
+/*Нумерация строк в таблице c title="AutoNumberRow" http://www.css-tricks.ru/articles/css/attribute-selectors */
+table {
+    counter-reset: count;
+}
+    /*Автонумерация строк в таблице с классом AutoNumberRow. Не нумеруем строки у которых класс td NoNumber (class="NoNumber" */
+    table[class~="AutoNumberRow"] td:not([class="NoNumber"]):first-child:before {
+        text-align: center;
+        content: counter(count)'.';
+        counter-increment: count;
+        text-align: center;
+    }
+
+.form-control-dropdownlist::-ms-expand {
+        background-color: transparent;
+        border: 0;
+    }
+
+
+/*Форма поиска пассажиров*/
+/************************************************/
+#search-block-form {
+    width: 340px;
+    height: 28px;
+    border-radius: 15px;
+    border: #c9c9c9 solid 1px;
+    background: url('../Image/searchBg.png') left top repeat-x;
+}
+
+.focus-active {
+    border-color: #aaa !important;
+    background: #fff !important;
+}
+
+#search-block-form input {
+    padding: 0;
+    margin: 0;
+    display: block;
+    border: none;
+    outline: none;
+    background: none;
+    width: 100%;
+    height: 100%;
+}
+
+#search-block-form .form-actions {
+    width: 30px;
+    height: 28px;
+    float: left;
+    background: url('../Image/searchIcon.png') 5px 2px no-repeat;
+   
+}
+
+    #search-block-form .form-actions input:hover {
+        cursor: pointer;
+    }
+
+    #search-block-form .form-actions input {
+        overflow: hidden;
+        text-indent: -9999px;
+    }
+
+#search-block-form .form-item {
+    width: 300px;
+    padding: 0px 20px;
+    float: left;
+    height: 28px;
+}
+
+    #search-block-form .form-item input {
+        font: 13px/16px "Trebuchet MS", Arial, Helvetica, sans-serif;
+        color: #222;
+        height: auto !important;
+        padding: 6px 0;
+    }
+
+.placeholder {
+    color: #cbcbcb !important;
+}
+.focus-active {
+    border-color: #aaa !important;
+    background: #fff !important;
+}
+/*Конец формы поиска*/
+
+/*Выравнивание закладок по центру*/
+/*.container {
+    padding-left: 50px;
+    padding-right: 50px;
+    min-width:1200px;  
+}*/
+
+
+.grad { /*https://testdrive-archive.azurewebsites.net/Graphics/CSSGradientBackgroundMaker/Default.html*/
+        /*Заливка жёлтым градиентом дней недели*/
+    /* IE10 Consumer Preview */
+    background-image: -ms-radial-gradient(center, ellipse farthest-corner, #FFECCF 0%, #FAC77A 100%);
+    /* Mozilla Firefox */
+    background-image: -moz-radial-gradient(center, ellipse farthest-corner, #FFECCF 0%, #FAC77A 100%);
+    /* Opera */
+    background-image: -o-radial-gradient(center, ellipse farthest-corner, #FFECCF 0%, #FAC77A 100%);
+    /* Webkit (Safari/Chrome 10) */
+    background-image: -webkit-gradient(radial, center center, 0, center center, 506, color-stop(0, #FFECCF), color-stop(1, #FAC77A));
+    /* Webkit (Chrome 11+) */
+    background-image: -webkit-radial-gradient(center, ellipse farthest-corner, #FFECCF 0%, #FAC77A 100%);
+    /* W3C Markup, IE10 Release Preview */
+    background-image: radial-gradient(ellipse farthest-corner at center, #FFECCF 0%, #FAC77A 100%);
+}
+
+.grad-grey {/*Заливка серым градиентом*/
+    /* IE10 Consumer Preview */
+    background-image: -ms-radial-gradient(left center, ellipse farthest-corner, #F7F7F7 0%, #CACBCC 100%);
+    /* Mozilla Firefox */
+    background-image: -moz-radial-gradient(left center, ellipse farthest-corner, #F7F7F7 0%, #CACBCC 100%);
+    /* Opera */
+    background-image: -o-radial-gradient(left center, ellipse farthest-corner, #F7F7F7 0%, #CACBCC 100%);
+    /* Webkit (Safari/Chrome 10) */
+    background-image: -webkit-gradient(radial, left center, 0, left center, 983, color-stop(0, #F7F7F7), color-stop(1, #CACBCC));
+    /* Webkit (Chrome 11+) */
+    background-image: -webkit-radial-gradient(left center, ellipse farthest-corner, #F7F7F7 0%, #CACBCC 100%);
+    /* W3C Markup, IE10 Release Preview */
+    background-image: radial-gradient(ellipse farthest-corner at left center, #F7F7F7 0%, #CACBCC 100%);
+}
+
+.grad-grey-table {
+    /* IE10 Consumer Preview */
+    background-image: -ms-linear-gradient(top, #F7F7F7 0%, #D7D8D9 100%);
+    /* Mozilla Firefox */
+    background-image: -moz-linear-gradient(top, #F7F7F7 0%, #D7D8D9 100%);
+   
+    /* Opera */
+    background-image: -o-linear-gradient(top, #F7F7F7 0%, #D7D8D9 100%);
+    /* Webkit (Safari/Chrome 10) */
+    background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0, #F7F7F7), color-stop(1, #D7D8D9));
+    /* Webkit (Chrome 11+) */
+    background-image: -webkit-linear-gradient(top, #F7F7F7 0%, #D7D8D9 100%);
+    /* W3C Markup, IE10 Release Preview */
+    background-image: linear-gradient(to bottom, #F7F7F7 0%, #D7D8D9 100%);
+}
+/*https://testdrive-archive.azurewebsites.net/Graphics/CSSGradientBackgroundMaker/Default.html*/
+/*Градиентная заливка при наведении в таблице на поле с классом grad-archive */
+.grad-archive:hover {
+    /* IE10 Consumer Preview */
+    background-image: -ms-linear-gradient(top, #E4E4F5 0%, #C2C2C2 100%);
+    /* Mozilla Firefox */
+    background-image: -moz-linear-gradient(top, #E4E4F5 0%, #C2C2C2 100%);
+    /* Opera */
+    background-image: -o-linear-gradient(top, #E4E4F5 0%, #C2C2C2 100%);
+    /* Webkit (Safari/Chrome 10) */
+    background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0, #E4E4F5), color-stop(1, #C2C2C2));
+    /* Webkit (Chrome 11+) */
+    background-image: -webkit-linear-gradient(top, #E4E4F5 0%, #C2C2C2 100%);
+    /* W3C Markup, IE10 Release Preview */
+    background-image: linear-gradient(to bottom, #E4E4F5 0%, #C2C2C2 100%);
+}
+.grad-archive {
+    /* IE10 Consumer Preview */
+    background-image: -ms-linear-gradient(top, #F5F5F5 0%, #D4D4D4 100%);
+    /* Mozilla Firefox */
+    background-image: -moz-linear-gradient(top, #F5F5F5 0%, #D4D4D4 100%);
+    /* Opera */
+    background-image: -o-linear-gradient(top, #F5F5F5 0%, #D4D4D4 100%);
+    /* Webkit (Safari/Chrome 10) */
+    background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0, #F5F5F5), color-stop(1, #D4D4D4));
+    /* Webkit (Chrome 11+) */
+    background-image: -webkit-linear-gradient(top, #F5F5F5 0%, #D4D4D4 100%);
+    /* W3C Markup, IE10 Release Preview */
+    background-image: linear-gradient(to bottom, #F5F5F5 0%, #D4D4D4 100%);
+}
+
+.grad-table-blue {
+    /* IE10 Consumer Preview */
+    background-image: -ms-radial-gradient(center, ellipse farthest-corner, #BAE1FF 0%, #86A5EF 100%);
+    /* Mozilla Firefox */
+    background-image: -moz-radial-gradient(center, ellipse farthest-corner, #BAE1FF 0%, #86A5EF 100%);
+    /* Opera */
+    background-image: -o-radial-gradient(center, ellipse farthest-corner, #BAE1FF 0%, #86A5EF 100%);
+    /* Webkit (Safari/Chrome 10) */
+    background-image: -webkit-gradient(radial, center center, 0, center center, 506, color-stop(0, #BAE1FF), color-stop(1, #86A5EF));
+    /* Webkit (Chrome 11+) */
+    background-image: -webkit-radial-gradient(center, ellipse farthest-corner, #BAE1FF 0%, #86A5EF 100%);
+    /* W3C Markup, IE10 Release Preview */
+    background-image: radial-gradient(ellipse farthest-corner at center, #BAE1FF 0%, #86A5EF 100%);
+}
+
+
+
+
+
+
+
